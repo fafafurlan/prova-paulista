@@ -202,6 +202,29 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
   .leg:last-child { grid-column: 1 / -1; border-bottom: 0; }
 }
 
+/* Ranking */
+.rank-school { text-transform: none; letter-spacing: 0; font: 500 13px var(--f-body); color: var(--ink-2); text-align: right; overflow-wrap: anywhere; }
+.rank-body { padding: 8px 20px 18px; display: flex; flex-direction: column; gap: 14px; }
+.rank-list { list-style: none; margin: 0; padding: 0; max-height: 420px; overflow-y: auto; }
+.rank-list li { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 10px; border-bottom: 1px solid var(--rule); }
+.rank-list li:last-child { border-bottom: 0; }
+.rank-list li.me { background: var(--pen-soft); border-radius: 6px; }
+.rank-pos { font-size: 20px; color: var(--ink-2); }
+.rank-list li:nth-child(-n+3) .rank-pos { color: var(--pen); }
+.rank-name { font-weight: 500; overflow-wrap: anywhere; }
+.rank-name small { color: var(--pen); font-weight: 600; }
+.rank-nota { font-size: 22px; }
+.rank-msg, .rank-note, .rank-me { margin: 0; color: var(--ink-2); font-size: 14px; }
+.rank-note { font-size: 12px; color: var(--ink-3); }
+.rank-me b { color: var(--ink); }
+.rank-action { display: flex; align-items: center; justify-content: space-between; gap: 10px 20px; flex-wrap: wrap; border-top: 1px solid var(--rule); padding-top: 14px; }
+.rank-action p { margin: 0; color: var(--ink-2); font-size: 14px; max-width: 62ch; }
+.rank-action b { color: var(--ink); }
+.rank-action.join { border: 1px solid var(--pen); background: var(--pen-soft); border-radius: var(--r); padding: 14px; }
+.rank-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding-top: 8px; }
+.rank-empty p { margin: 0; color: var(--ink-2); max-width: 60ch; }
+button:disabled { opacity: .6; cursor: progress; }
+
 /* Compare */
 .compare { display: flex; flex-direction: column; gap: 12px; }
 .compare-scroll { overflow-x: auto; }

@@ -12,6 +12,7 @@ provao-paulista-2026/
 ├── cursos.json           # 1.805 cursos extraídos da aba "Todos os cursos"
 ├── escolas.json          # 4.060 escolas de SP com ensino médio (sugestões no campo "Escola")
 ├── og.png                # imagem de pré-visualização para redes sociais (1200×630)
+├── api/ranking.js        # função da Vercel do ranking por escola (Upstash Redis)
 ├── vercel.json           # headers e cache para Vercel
 ├── netlify.toml          # alternativa para Netlify
 ├── scripts/xlsx_to_json.py    # regenera cursos.json a partir da planilha
@@ -101,3 +102,19 @@ O `index.html` carrega `style.css?v=…` e `app.js?v=…`. Sempre que alterar um
 V=$(cat style.css app.js | sha1sum | cut -c1-8)
 sed -i -E "s/(style\.css|app\.js)\?v=[a-z0-9]+/\1?v=$V/g" index.html
 ```
+
+## Ranking por escola
+
+O ranking usa uma função da Vercel (`api/ranking.js`) e um banco Redis gratuito da Upstash. Sem o banco, o site funciona normalmente e a seção mostra "O ranking ainda não está ativado".
+
+**Ativar (uma vez, no painel da Vercel):**
+1. Abra o projeto → **Storage** → **Create Database** → **Upstash for Redis** (plano gratuito).
+2. Conecte o banco a este projeto. A Vercel cria as variáveis `KV_REST_API_URL` e `KV_REST_API_TOKEN`.
+3. Faça um novo deploy (**Deployments → ⋯ → Redeploy**) para a função enxergar as variáveis.
+
+**Como funciona:**
+- Participar é opcional: o aluno precisa ter escolhido a escola na lista de sugestões e clicar em "Entrar no ranking da escola".
+- O ranking mostra só o primeiro nome e a inicial do sobrenome (ex.: "Ana S."). O servidor monta esse nome e descarta o resto.
+- O servidor recalcula a nota a partir dos acertos e só aceita escolas de `escolas.json`.
+- Cada aparelho tem uma chave secreta (`pp26-rank-token` no `localStorage`); só quem tem a chave atualiza ou remove o próprio registro. "Sair do ranking" e "Apagar meus dados" removem o registro do servidor.
+- Limite de 300 envios por hora por IP (uma escola inteira pode sair pelo mesmo IP).
