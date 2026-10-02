@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulador Provão Paulista 2026</title>
+<meta name="description" content="Simule sua nota final no Provão Paulista Seriado 2026 e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://provao-paulista-2026.vercel.app/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:site_name" content="Simulador Provão Paulista 2026">
+<meta property="og:title" content="Simulador Provão Paulista 2026 — qual a sua chance?">
+<meta property="og:description" content="Coloque seus acertos do Provão I e II, estime a 3ª série + redação e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
+<meta property="og:url" content="https://provao-paulista-2026.vercel.app/">
+<meta property="og:image" content="https://provao-paulista-2026.vercel.app/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Simulador Provão Paulista 2026">
+<meta name="twitter:description" content="Sua nota final projetada e sua chance em 1.805 cursos públicos de SP.">
+<meta name="twitter:image" content="https://provao-paulista-2026.vercel.app/og.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='.5' stop-color='%23a855f7'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M18 44V20h12a8 8 0 0 1 0 16h-6' fill='none' stroke='white' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='44' cy='42' r='5' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;700&display=swap">
+<link rel="preload" href="cursos.json" as="fetch" crossorigin>
+<link rel="stylesheet" href="style.css">
+<script>try{var t=localStorage.getItem("pp26-theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}</script>
+</head>
+<body>
+<a class="skip" href="#resultados">Pular para os cursos</a>
+<div class="aurora" aria-hidden="true"></div>
+
+<header class="toolbar" id="toolbar">
+  <div class="toolbar-inner">
+    <a class="brand" href="#topo" aria-label="Início">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span class="brand-name">Provão Paulista <b>2026</b></span>
+    </a>
+    <div class="toolbar-score" aria-live="off">
+      <span class="ts-label">Sua nota</span>
+      <span class="ts-value mono" id="tsNota">0,0</span>
+      <span class="ts-sep" aria-hidden="true">/</span>
+      <span class="ts-max mono" id="tsMax">100</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="icon-btn" id="btnShare" type="button" aria-label="Compartilhar meu resultado" title="Compartilhar meu resultado" data-icon="share"></button>
+      <button class="icon-btn" id="btnTheme" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema" data-icon="sun"></button>
+    </div>
+  </div>
+</header>
+
+<main id="topo">
+  <section class="hero wrap">
+    <p class="eyebrow"><span class="dot" aria-hidden="true"></span> Seriado 2026 · Fórmula oficial do Anexo V, Quadro II</p>
+    <h1 class="hero-title">Qual a sua chance<br><span class="grad">no Provão Paulista?</span></h1>
+    <p class="hero-sub">Informe seus acertos do Provão I e II, estime a 3ª série + redação e veja sua nota final projetada e sua chance em <b id="heroTotal">1.805</b> cursos da USP, Unesp, Unicamp, Fatec e Univesp.</p>
+  </section>
+
+  <section class="wrap inputs" aria-labelledby="inputsTitle">
+    <h2 id="inputsTitle" class="sr-only">Suas notas</h2>
+    <div class="input-card glass" style="--hue:var(--i1)">
+      <div class="ic-head">
+        <label for="n1Range" class="ic-label"><span class="ic-step">1ª série</span> Acertos no Provão I</label>
+        <span class="ic-weight">peso 25%</span>
+      </div>
+      <div class="ic-value">
+        <input class="num mono" id="n1Num" type="number" inputmode="numeric" min="0" max="60" step="1" value="40" aria-label="Acertos na 1ª série, número">
+        <span class="ic-of mono">/ <span data-total>60</span></span>
+      </div>
+      <input class="range" id="n1Range" type="range" min="0" max="60" step="1" value="40" aria-label="Acertos na 1ª série (Provão I)">
+      <p class="ic-foot">Nota convertida: <b class="mono" id="n1Nota">66,7</b></p>
+    </div>
+
+    <div class="input-card glass" style="--hue:var(--i2)">
+      <div class="ic-head">
+        <label for="n2Range" class="ic-label"><span class="ic-step">2ª série</span> Acertos no Provão II</label>
+        <span class="ic-weight">peso 25%</span>
+      </div>
+      <div class="ic-value">
+        <input class="num mono" id="n2Num" type="number" inputmode="numeric" min="0" max="60" step="1" value="42" aria-label="Acertos na 2ª série, número">
+        <span class="ic-of mono">/ <span data-total>60</span></span>
+      </div>
+      <input class="range" id="n2Range" type="range" min="0" max="60" step="1" value="42" aria-label="Acertos na 2ª série (Provão II)">
+      <p class="ic-foot">Nota convertida: <b class="mono" id="n2Nota">70,0</b></p>
+    </div>
+
+    <div class="input-card glass" style="--hue:var(--i3)">
+      <div class="ic-head">
+        <label for="n3Range" class="ic-label"><span class="ic-step">3ª série</span> Estimativa 3ª série + redação</label>
+        <span class="ic-weight">peso 50%</span>
+      </div>
+      <div class="ic-value">
+        <input class="num mono" id="n3Num" type="number" inputmode="decimal" min="0" max="100" step="1" value="70" aria-label="Estimativa da 3ª série mais redação, de 0 a 100">
+        <span class="ic-of mono">/ 100</span>
+      </div>
+      <input class="range" id="n3Range" type="range" min="0" max="100" step="1" value="70" aria-label="Estimativa da 3ª série mais redação (0 a 100)">
+      <p class="ic-foot">30% prova da 3ª série + 20% redação</p>
+    </div>
+  </section>
+
+  <section class="wrap score glass" aria-labelledby="scoreTitle">
+    <div class="score-main">
+      <h2 id="scoreTitle" class="score-label">Nota final projetada</h2>
+      <p class="score-big mono"><span id="notaFinal">0,0</span><small>/100</small></p>
+      <p class="score-formula mono" id="scoreFormula">0,25 × 66,7 + 0,25 × 70,0 + 0,5 × 70</p>
+    </div>
+    <div class="score-bar-wrap">
+      <div class="score-bar" role="img" id="scoreBarImg" aria-label="Barra de nota">
+        <div class="sb-max" id="sbMax"></div>
+        <div class="sb-fill" id="sbFill"></div>
+        <div class="sb-tick" id="sbTick"><span class="mono" id="sbTickLabel">máx 84,2</span></div>
+      </div>
+      <div class="sb-legend">
+        <span><i class="lg lg-fill"></i>Projetada</span>
+        <span><i class="lg lg-max"></i>Máxima possível (100 na 3ª e na redação): <b class="mono" id="notaMax">0</b></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap stats" aria-label="Resumo por chance" id="stats"></section>
+
+  <section class="wrap compare" id="compare" hidden aria-labelledby="compareTitle">
+    <div class="section-head">
+      <h2 id="compareTitle"><span data-icon="pin"></span> Comparador</h2>
+      <button class="link-btn" id="btnClearPins" type="button">Limpar</button>
+    </div>
+    <div class="compare-grid" id="compareGrid"></div>
+  </section>
+
+  <section class="wrap reverse glass" aria-labelledby="reverseTitle">
+    <div class="reverse-text">
+      <h2 id="reverseTitle"><span data-icon="target"></span> O que eu preciso tirar na 3ª?</h2>
+      <p>Escolha o curso dos sonhos. Usamos seus acertos do Provão I e II para calcular a média mínima na 3ª série + redação.</p>
+    </div>
+    <div class="reverse-box">
+      <div class="combo" id="combo">
+        <label for="revInput" class="sr-only">Buscar curso</label>
+        <span class="combo-ico" data-icon="search" aria-hidden="true"></span>
+        <input id="revInput" type="text" autocomplete="off" placeholder="Ex.: Medicina USP, Engenharia Unicamp…" role="combobox" aria-expanded="false" aria-controls="revList" aria-autocomplete="list">
+        <ul id="revList" class="combo-list" role="listbox" hidden></ul>
+      </div>
+      <div class="reverse-out" id="revOut" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section class="wrap filters-wrap" id="resultados" aria-labelledby="cursosTitle">
+    <div class="section-head">
+      <h2 id="cursosTitle">Cursos <span class="count mono" id="countLabel"></span></h2>
+    </div>
+    <div class="filters glass">
+      <div class="search">
+        <span data-icon="search" aria-hidden="true"></span>
+        <label for="q" class="sr-only">Buscar curso, unidade ou cidade</label>
+        <input id="q" type="search" placeholder="Buscar curso, unidade ou cidade…" autocomplete="off">
+      </div>
+      <div class="chip-row" role="group" aria-label="Instituição" id="instChips"></div>
+      <div class="selects">
+        <label class="sel"><span>Chance</span>
+          <select id="fChance">
+            <option value="">Todas</option>
+          </select>
+        </label>
+        <label class="sel"><span>Turno</span>
+          <select id="fTurno"><option value="">Todos</option></select>
+        </label>
+        <label class="sel"><span>Ordenar</span>
+          <select id="fSort">
+            <option value="ranking">Ranking (mais concorrido)</option>
+            <option value="chance">Minha chance</option>
+            <option value="vagas">Mais vagas</option>
+            <option value="notaAsc">Menor nota de corte</option>
+            <option value="notaDesc">Maior nota de corte</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <p class="sr-only" id="liveCount" aria-live="polite"></p>
+    <div class="grid" id="grid" aria-busy="true">
+      <div class="loading">Carregando 1.805 cursos…</div>
+    </div>
+    <div id="sentinel" class="sentinel" aria-hidden="true"></div>
+    <p class="empty" id="empty" hidden>Nenhum curso com esses filtros. Tente limpar a busca ou trocar a instituição.</p>
+  </section>
+
+  <section class="wrap how" id="como-funciona" aria-labelledby="howTitle">
+    <h2 id="howTitle">Como funciona</h2>
+    <div class="how-grid">
+      <article class="glass how-card">
+        <h3>1. Nota de cada prova</h3>
+        <p>As provas da 1ª e da 2ª série têm <b data-total>60</b> questões. A nota vai de 0 a 100:</p>
+        <code class="mono">nota = acertos ÷ <span data-total>60</span> × 100</code>
+      </article>
+      <article class="glass how-card">
+        <h3>2. Nota final (Anexo V, Quadro II)</h3>
+        <p>25% da 1ª série, 25% da 2ª, 30% da prova da 3ª e 20% da redação. Como você informa 3ª + redação juntas:</p>
+        <code class="mono">final = 0,25·N1 + 0,25·N2 + 0,5·N3</code>
+      </article>
+      <article class="glass how-card">
+        <h3>3. Média necessária no curso</h3>
+        <p>Com a nota estimada para garantir a vaga, calculamos quanto falta na 3ª série + redação:</p>
+        <code class="mono">média = (corte − 0,25·N1 − 0,25·N2) ÷ 0,5</code>
+      </article>
+      <article class="glass how-card">
+        <h3>4. Sua chance</h3>
+        <ul class="how-list">
+          <li><i class="c-dot" data-c="boa"></i>Faltam até 5 pontos: <b>Boa chance</b></li>
+          <li><i class="c-dot" data-c="possivel"></i>Até 15: <b>Possível</b></li>
+          <li><i class="c-dot" data-c="dificil"></i>Até 25: <b>Difícil</b></li>
+          <li><i class="c-dot" data-c="muito"></i>Mais de 25: <b>Muito difícil</b></li>
+          <li><i class="c-dot" data-c="fora"></i>Média acima de 100: <b>Fora de alcance</b></li>
+        </ul>
+      </article>
+    </div>
+    <p class="how-note">Na prova da 3ª série, as matérias têm peso diferente conforme a área do curso (Anexo V, Quadro V). USP, Unesp e Unicamp exigem no mínimo 22 acertos na prova da 3ª série (item 13.10); Fatec e Univesp não têm nota mínima. As notas de corte são <b>estimativas</b> e não garantem aprovação. Confira sempre o edital oficial.</p>
+  </section>
+</main>
+
+<footer class="footer wrap">
+  <p>Simulador independente, sem vínculo com a Seduc-SP ou as universidades. Dados: estimativas por curso (planilha “Todos os cursos”).</p>
+</footer>
+
+<div class="modal" id="shareModal" hidden role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card glass">
+    <div class="section-head">
+      <h2 id="shareTitle">Compartilhar resultado</h2>
+      <button class="icon-btn" type="button" data-close aria-label="Fechar" data-icon="x"></button>
+    </div>
+    <img id="shareImg" alt="Card com sua nota final projetada e chances por curso" width="1080" height="1350">
+    <div class="modal-actions">
+      <a class="btn btn-primary" id="shareDownload" download="meu-provao-paulista-2026.png" href="#"><span data-icon="download"></span> Baixar imagem</a>
+      <button class="btn" id="shareNative" type="button"><span data-icon="share"></span> Compartilhar</button>
+      <button class="btn" id="shareCopy" type="button"><span data-icon="copy"></span> Copiar texto</button>
+    </div>
+    <p class="modal-hint" id="shareHint">No celular, toque e segure a imagem para salvar.</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="app.js" defer></script>
+</body>
+</html>
