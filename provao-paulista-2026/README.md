@@ -54,7 +54,7 @@ vercel login
 vercel --prod            # na primeira vez, nomeie o projeto "provao-paulista-2026"
 ```
 
-URL gratuita: `https://provao-paulista-2026.vercel.app` (se o nome estiver livre; senão a Vercel sugere outro e você deve atualizar `CONFIG.SITE_URL` e as meta tags `og:url`/`canonical`/`og:image` em `index.html`).
+Site publicado: `https://prova-paulista-provao-paulista-2026.vercel.app`. Se a URL mudar (outro nome de projeto ou domínio próprio), atualize `CONFIG.SITE_URL` e as meta tags `og:url`/`canonical`/`og:image` em `index.html`.
 
 Domínio próprio: **Project → Settings → Domains → Add**, depois crie no seu provedor de DNS um registro `CNAME www → cname.vercel-dns.com` (ou `A @ → 76.76.21.21` para o domínio raiz).
 

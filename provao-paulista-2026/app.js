@@ -10,7 +10,7 @@ const CONFIG = {
   DATA_URL: "cursos.json",
   PAGE_SIZE: 48,                 // cards renderizados por lote (lazy render)
   MAX_PINS: 4,
-  SITE_URL: "provao-paulista-2026.vercel.app",
+  SITE_URL: "prova-paulista-provao-paulista-2026.vercel.app",
   STORAGE_KEY: "pp26-state",
   DEFAULTS: { n1: 40, n2: 42, n3: 70 },
 };
@@ -646,11 +646,11 @@ async function drawShareCard() {
     ctx.fillStyle = "#ededf3"; ctx.font = `700 76px ${M}`; ctx.fillText(nf0.format(counts[k]), x + 28, y + 140);
   });
 
-  ctx.fillStyle = "#a1a1b5"; ctx.font = `600 28px ${F}`; ctx.fillText("CURSOS MAIS CONCORRIDOS COM BOA CHANCE", 80, 890);
+  ctx.fillStyle = "#a1a1b5"; ctx.font = `600 28px ${F}`; ctx.fillText("CURSOS MAIS CONCORRIDOS COM BOA CHANCE", 80, 872);
   const tops = topBoaChance(3);
-  if (!tops.length) { ctx.fillStyle = "#ededf3"; ctx.font = `500 36px ${F}`; ctx.fillText("Bora estudar pra 3ª série! 💪", 80, 950); }
+  if (!tops.length) { ctx.fillStyle = "#ededf3"; ctx.font = `500 36px ${F}`; ctx.fillText("Bora estudar pra 3ª série! 💪", 80, 930); }
   tops.forEach((i, j) => {
-    const c = CURSOS[i], y = 930 + j * 100;
+    const c = CURSOS[i], y = 900 + j * 94;
     roundRect(ctx, 80, y, W - 160, 84, 18); ctx.fillStyle = "rgba(255,255,255,.05)"; ctx.fill();
     const instCol = { USP: "#facc15", UNESP: "#22c55e", UNICAMP: "#dc2626", FATEC: "#2563eb", UNIVESP: "#7c3aed" }[c.instituicao] || "#a855f7";
     roundRect(ctx, 100, y + 22, 150, 40, 8); ctx.fillStyle = instCol; ctx.fill();
@@ -658,8 +658,8 @@ async function drawShareCard() {
     ctx.fillStyle = "#ededf3"; ctx.font = `600 32px ${F}`; ctx.fillText(fitText(ctx, c.curso, W - 160 - 220), 275, y + 54);
   });
 
-  ctx.fillStyle = grad; ctx.font = `700 34px ${F}`; ctx.fillText(CONFIG.SITE_URL, 80, H - 70);
-  ctx.fillStyle = "#6e6e85"; ctx.font = `500 24px ${F}`; ctx.textAlign = "right"; ctx.fillText("Simule a sua nota", W - 80, H - 72); ctx.textAlign = "left";
+  ctx.fillStyle = "#a1a1b5"; ctx.font = `500 26px ${F}`; ctx.fillText("Simule a sua nota em", 80, H - 112);
+  ctx.fillStyle = grad; ctx.font = `700 34px ${F}`; ctx.fillText(fitText(ctx, CONFIG.SITE_URL, W - 160), 80, H - 66);
   return cv;
 }
 function setupShare() {
