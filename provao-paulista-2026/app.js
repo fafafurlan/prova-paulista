@@ -533,6 +533,8 @@ function update(opts = {}) {
   $("#countLabel").textContent = `${nf0.format(list.length)} de ${nf0.format(CURSOS.length)}`;
   announce(`${list.length} cursos na lista`);
   persist();
+  if (rank.on) syncRanking();
+  else if (rank.data && rank.status === "ok") renderRanking();
 }
 const announce = debounce((t) => { $("#liveCount").textContent = t; }, 600);
 
@@ -685,24 +687,148 @@ function setupProfile() {
     store.set(PROFILE_KEY, profile);
     renderProfile();
     close();
+    if (rank.on && !rankSchool()) leaveRanking(true);
+    else if (rank.on) syncRanking();
+    loadRanking();
     toast(`Pronto, ${firstName()}! Seu boletim está personalizado.`);
   });
   nome.addEventListener("input", () => { if (nome.value.trim()) { err.hidden = true; nome.removeAttribute("aria-invalid"); } });
   $("#pfSkip").addEventListener("click", close);
   $("#pfClear").addEventListener("click", () => {
+    if (rank.on) leaveRanking(true);
     profile = null;
     try { localStorage.removeItem(PROFILE_KEY); } catch (e) { /* ok */ }
     renderProfile();
+    loadRanking();
     close();
     toast("Seus dados foram apagados deste aparelho.");
   });
   modal.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  openProfileDialog = open;
   $("#btnProfile").addEventListener("click", open);
   $("#btnEditId").addEventListener("click", open);
   renderProfile();
   let seen = false;
   try { seen = !!localStorage.getItem(WELCOME_KEY); } catch (e) { seen = true; }
   if (!seen && !profile) open();
+}
+
+/* ---------- ranking da escola (api/ranking.js) ---------- */
+const RANK_TOKEN_KEY = "pp26-rank-token", RANK_ON_KEY = "pp26-rank-on";
+const rank = { on: false, data: null, status: "idle", lastSent: "" };
+try { rank.on = localStorage.getItem(RANK_ON_KEY) === "1"; } catch (e) { /* ok */ }
+let openProfileDialog = () => {};
+function rankToken() {
+  let t = null;
+  try { t = localStorage.getItem(RANK_TOKEN_KEY); } catch (e) { /* ok */ }
+  if (!t || !/^[a-f0-9]{64}$/.test(t)) {
+    const a = new Uint8Array(32); crypto.getRandomValues(a);
+    t = Array.from(a, (x) => x.toString(16).padStart(2, "0")).join("");
+    try { localStorage.setItem(RANK_TOKEN_KEY, t); } catch (e) { /* ok */ }
+  }
+  return t;
+}
+function setRankOn(v) { rank.on = v; try { localStorage.setItem(RANK_ON_KEY, v ? "1" : "0"); } catch (e) { /* ok */ } }
+// Mesmo formato que o servidor usa: "Ana S."
+function rankName(nome) {
+  const w = String(nome || "").replace(/[^\p{L}\s'-]/gu, " ").split(/\s+/).filter(Boolean);
+  if (!w.length) return "";
+  const cap = (s) => s.charAt(0).toLocaleUpperCase("pt-BR") + s.slice(1).toLocaleLowerCase("pt-BR");
+  return w.length > 1 ? `${cap(w[0])} ${w[w.length - 1].charAt(0).toLocaleUpperCase("pt-BR")}.` : cap(w[0]);
+}
+const rankSchool = () => (profile && profile.escola && profile.cidade ? { escola: profile.escola, cidade: profile.cidade } : null);
+async function rankApi(method, payload) {
+  const s = rankSchool();
+  const url = method === "GET"
+    ? `/api/ranking?${new URLSearchParams({ escola: s.escola, cidade: s.cidade })}`
+    : "/api/ranking";
+  const r = await fetch(url, method === "GET"
+    ? { headers: { "X-Rank-Token": rankToken() } }
+    : { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token: rankToken(), ...payload }) });
+  let data = null;
+  try { data = await r.json(); } catch (e) { /* resposta sem JSON */ }
+  if (!r.ok) { const err = new Error((data && data.error) || String(r.status)); err.status = r.status; throw err; }
+  return data;
+}
+const rankPayload = () => ({ nome: profile.nome, escola: profile.escola, cidade: profile.cidade, n1: state.n1, n2: state.n2, n3: state.n3 });
+const rankKey = () => (profile ? JSON.stringify(rankPayload()) : "");
+async function loadRanking() {
+  if (!rankSchool()) { rank.data = null; rank.status = "idle"; renderRanking(); return; }
+  rank.status = "loading"; renderRanking();
+  try {
+    rank.data = await rankApi("GET");
+    rank.status = "ok";
+    if (rank.on && !rank.data.voce) setRankOn(false);       // registro removido em outro lugar
+    if (rank.on && rankKey() !== rank.lastSent) syncRanking(); // notas mudaram desde a última visita
+  } catch (e) {
+    rank.status = e.status === 503 || e.status === 404 ? "off" : "error";
+  }
+  renderRanking();
+}
+async function joinRanking() {
+  const btn = $("#rankJoin"); if (btn) btn.disabled = true;
+  try {
+    rank.data = await rankApi("POST", rankPayload());
+    rank.lastSent = rankKey();
+    setRankOn(true); rank.status = "ok";
+    toast(`Pronto! Você está em ${rank.data.voce ? rank.data.voce.pos + "º" : ""} lugar na sua escola.`);
+  } catch (e) {
+    toast(e.message === "muitas_tentativas" ? "Muitas atualizações seguidas. Tente de novo em alguns minutos."
+      : e.message === "escola_invalida" ? "Escolha sua escola na lista de sugestões para entrar no ranking."
+      : "Não foi possível entrar no ranking agora. Tente de novo.");
+  }
+  renderRanking();
+}
+async function leaveRanking(silent) {
+  try { await rankApi("DELETE", {}); } catch (e) { if (!silent) { toast("Não foi possível sair do ranking agora. Tente de novo."); return; } }
+  setRankOn(false); rank.lastSent = "";
+  if (!silent) toast("Você saiu do ranking. Seu nome foi removido da lista.");
+  loadRanking();
+}
+const syncRanking = debounce(async () => {
+  if (!rank.on || !rankSchool() || rankKey() === rank.lastSent) return;
+  try {
+    rank.data = await rankApi("POST", rankPayload());
+    rank.lastSent = rankKey(); rank.status = "ok";
+    renderRanking();
+  } catch (e) { /* tenta de novo na próxima mudança */ }
+}, 2500);
+function renderRanking() {
+  const body = $("#rankBody"), s = rankSchool();
+  $("#rankSchool").textContent = s ? `${s.escola}, ${s.cidade}` : "";
+  if (!s) {
+    body.innerHTML = `<div class="rank-empty"><p>${profile && profile.escola
+      ? "Para ver o ranking, escolha sua escola na lista de sugestões (com a cidade)."
+      : "Escolha sua escola para ver como você está entre os colegas que também usam o simulador."}</p>
+      <button class="btn btn-primary" type="button" data-rank="profile">Escolher minha escola</button></div>`;
+    return;
+  }
+  if (rank.status === "loading" && !rank.data) { body.innerHTML = `<p class="rank-msg">Carregando ranking…</p>`; return; }
+  if (rank.status === "off") { body.innerHTML = `<p class="rank-msg">O ranking ainda não está ativado neste site.</p>`; return; }
+  if (rank.status === "error" && !rank.data) { body.innerHTML = `<p class="rank-msg">Não foi possível carregar o ranking agora. <button class="link-btn" type="button" data-rank="retry">Tentar de novo</button></p>`; return; }
+  const d = rank.data || { total: 0, top: [], voce: null };
+  const rows = d.top.length
+    ? `<ol class="rank-list">${d.top.map((r) => `<li class="${r.voce ? "me" : ""}"><span class="rank-pos num">${r.pos}º</span><span class="rank-name">${esc(r.nome)}${r.voce ? ' <small>(você)</small>' : ""}</span><span class="rank-nota num">${fmt1(r.nota)}</span></li>`).join("")}</ol>`
+    : `<p class="rank-msg">Ninguém da sua escola entrou no ranking ainda. Seja o primeiro!</p>`;
+  const meOutside = d.voce && d.voce.pos > d.top.length
+    ? `<p class="rank-me">Sua posição: <b>${d.voce.pos}º de ${nf0.format(d.total)}</b> com ${fmt1(d.voce.nota)}</p>` : "";
+  const action = rank.on && d.voce
+    ? `<div class="rank-action"><p>Você está em <b>${d.voce.pos}º lugar</b> de ${nf0.format(d.total)} ${d.total === 1 ? "aluno" : "alunos"}. Sua nota é atualizada quando você muda os acertos.</p>
+       <button class="link-btn" type="button" data-rank="leave">Sair do ranking</button></div>`
+    : `<div class="rank-action join"><p>Você vai aparecer como <b>${esc(rankName(profile.nome))}</b> com sua nota projetada (<b>${fmt1(calc.final)}</b>). Só a lista da sua escola mostra seu nome, e você pode sair quando quiser.</p>
+       <button class="btn btn-primary" type="button" id="rankJoin" data-rank="join">Entrar no ranking da escola</button></div>`;
+  body.innerHTML = `${rows}${meOutside}${action}<p class="rank-note">${nf0.format(d.total)} ${d.total === 1 ? "aluno participa" : "alunos participam"}. As notas são simulações informadas pelos próprios alunos.</p>`;
+}
+function setupRanking() {
+  $("#rankBody").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-rank]"); if (!b) return;
+    const a = b.dataset.rank;
+    if (a === "profile") openProfileDialog();
+    else if (a === "join") joinRanking();
+    else if (a === "leave") leaveRanking(false);
+    else if (a === "retry") loadRanking();
+  });
+  loadRanking();
 }
 
 /* ---------- compartilhar: boletim em imagem (canvas) ---------- */
@@ -864,6 +990,7 @@ async function boot() {
   setupFilters();
   setupShare();
   setupProfile();
+  setupRanking();
   update();
   try {
     const res = await fetch(CONFIG.DATA_URL);

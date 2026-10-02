@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=a9300139">
+<link rel="stylesheet" href="style.css?v=7788c633">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 </head>
 <body>
@@ -154,6 +154,16 @@
     </div>
     <div class="dist-bar" id="distBar" aria-hidden="true"></div>
     <div class="dist-legend" id="stats" role="group" aria-label="Filtrar por chance"></div>
+  </section>
+
+  <section class="wrap" id="ranking" aria-labelledby="rankTitle">
+    <div class="sheet ranking">
+      <div class="sheet-head">
+        <h2 id="rankTitle">Ranking da escola</h2>
+        <span class="sheet-tag rank-school" id="rankSchool"></span>
+      </div>
+      <div class="rank-body" id="rankBody" aria-live="polite"></div>
+    </div>
   </section>
 
   <section class="wrap compare" id="compare" hidden aria-labelledby="compareTitle">
@@ -321,6 +331,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="app.js?v=a9300139" defer></script>
+<script src="app.js?v=7788c633" defer></script>
 </body>
 </html>
