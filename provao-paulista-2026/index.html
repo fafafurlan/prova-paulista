@@ -67,60 +67,55 @@
       <div class="boletim-grid">
         <div class="fields">
           <div class="field" data-key="n1">
-            <div class="field-top">
-              <span class="field-no mono">01</span>
-              <label class="field-label" for="n1Range">Provão I <span>1ª série · acertos</span></label>
+            <div class="field-head">
+              <label class="field-label" for="n1Range"><span class="field-no mono">01</span>Provão I <small>1ª série</small></label>
               <span class="field-weight mono">peso 25%</span>
             </div>
-            <div class="field-row">
-              <div class="num-box">
-                <input class="num-input num" id="n1Num" type="number" inputmode="numeric" min="0" max="60" step="1" value="40" aria-label="Acertos no Provão I, número">
-                <span class="num-of mono">/<span data-total>60</span></span>
+            <div class="field-main">
+              <div class="stepper">
+                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Acertos no Provão I (1ª série)">−</button>
+                <input class="num-input num" id="n1Num" type="number" inputmode="numeric" min="0" max="60" step="1" aria-label="Acertos no Provão I (1ª série), número">
+                <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão I (1ª série)">+</button>
               </div>
-              <div class="field-ctrl">
-                <input class="range" id="n1Range" type="range" min="0" max="60" step="1" value="40" aria-label="Acertos no Provão I (1ª série)">
-                <div class="bubbles" data-for="n1" aria-hidden="true"></div>
-              </div>
+              <p class="field-unit"><span>acertos de <span data-total>60</span></span><span class="mono">nota <b id="n1Nota">0,0</b></span></p>
+              <p class="field-contrib"><span>na nota final</span><b class="num" id="n1Contrib">+0,0</b></p>
             </div>
-            <p class="field-foot mono">nota <b id="n1Nota">66,7</b></p>
+            <input class="range" id="n1Range" type="range" min="0" max="60" step="1" aria-label="Acertos no Provão I (1ª série)">
+            <div class="ruler mono" aria-hidden="true"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
           </div>
-
           <div class="field" data-key="n2">
-            <div class="field-top">
-              <span class="field-no mono">02</span>
-              <label class="field-label" for="n2Range">Provão II <span>2ª série · acertos</span></label>
+            <div class="field-head">
+              <label class="field-label" for="n2Range"><span class="field-no mono">02</span>Provão II <small>2ª série</small></label>
               <span class="field-weight mono">peso 25%</span>
             </div>
-            <div class="field-row">
-              <div class="num-box">
-                <input class="num-input num" id="n2Num" type="number" inputmode="numeric" min="0" max="60" step="1" value="42" aria-label="Acertos no Provão II, número">
-                <span class="num-of mono">/<span data-total>60</span></span>
+            <div class="field-main">
+              <div class="stepper">
+                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Acertos no Provão II (2ª série)">−</button>
+                <input class="num-input num" id="n2Num" type="number" inputmode="numeric" min="0" max="60" step="1" aria-label="Acertos no Provão II (2ª série), número">
+                <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão II (2ª série)">+</button>
               </div>
-              <div class="field-ctrl">
-                <input class="range" id="n2Range" type="range" min="0" max="60" step="1" value="42" aria-label="Acertos no Provão II (2ª série)">
-                <div class="bubbles" data-for="n2" aria-hidden="true"></div>
-              </div>
+              <p class="field-unit"><span>acertos de <span data-total>60</span></span><span class="mono">nota <b id="n2Nota">0,0</b></span></p>
+              <p class="field-contrib"><span>na nota final</span><b class="num" id="n2Contrib">+0,0</b></p>
             </div>
-            <p class="field-foot mono">nota <b id="n2Nota">70,0</b></p>
+            <input class="range" id="n2Range" type="range" min="0" max="60" step="1" aria-label="Acertos no Provão II (2ª série)">
+            <div class="ruler mono" aria-hidden="true"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
           </div>
-
           <div class="field" data-key="n3">
-            <div class="field-top">
-              <span class="field-no mono">03</span>
-              <label class="field-label" for="n3Range">Provão III + redação <span>3ª série · estimativa de 0 a 100</span></label>
+            <div class="field-head">
+              <label class="field-label" for="n3Range"><span class="field-no mono">03</span>Provão III + redação <small>3ª série, estimativa</small></label>
               <span class="field-weight mono">peso 50%</span>
             </div>
-            <div class="field-row">
-              <div class="num-box">
-                <input class="num-input num" id="n3Num" type="number" inputmode="numeric" min="0" max="100" step="1" value="70" aria-label="Estimativa da 3ª série mais redação, de 0 a 100">
-                <span class="num-of mono">/100</span>
+            <div class="field-main">
+              <div class="stepper">
+                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Estimativa da 3ª série mais redação, de 0 a 100">−</button>
+                <input class="num-input num" id="n3Num" type="number" inputmode="numeric" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100, número">
+                <button class="step" type="button" data-step="1" aria-label="Aumentar: Estimativa da 3ª série mais redação, de 0 a 100">+</button>
               </div>
-              <div class="field-ctrl">
-                <input class="range" id="n3Range" type="range" min="0" max="100" step="1" value="70" aria-label="Estimativa da 3ª série mais redação (0 a 100)">
-                <div class="ruler mono" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
-              </div>
+              <p class="field-unit"><span>pontos de 100</span><span class="mono">30% prova + 20% redação</span></p>
+              <p class="field-contrib"><span>na nota final</span><b class="num" id="n3Contrib">+0,0</b></p>
             </div>
-            <p class="field-foot mono">30% prova + 20% redação</p>
+            <input class="range" id="n3Range" type="range" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100">
+            <div class="ruler mono" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
           </div>
         </div>
 

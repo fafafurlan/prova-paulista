@@ -125,15 +125,14 @@ function gapText(i) {
 
 /* ---------- inputs ---------- */
 const inputs = [
-  { key: "n1", range: $("#n1Range"), num: $("#n1Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos", bubbles: $('.bubbles[data-for="n1"]') },
-  { key: "n2", range: $("#n2Range"), num: $("#n2Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos", bubbles: $('.bubbles[data-for="n2"]') },
+  { key: "n1", range: $("#n1Range"), num: $("#n1Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos" },
+  { key: "n2", range: $("#n2Range"), num: $("#n2Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos" },
   { key: "n3", range: $("#n3Range"), num: $("#n3Num"), max: () => 100, unit: "pontos" },
 ];
 function paintInput(inp) {
   const max = inp.max(), v = state[inp.key];
   inp.range.style.setProperty("--p", (v / max) * 100 + "%");
   inp.range.setAttribute("aria-valuetext", `${nf0.format(v)} ${inp.unit} de ${max}`);
-  if (inp.bubbles) inp.bubbles.querySelectorAll(".bub").forEach((b, k) => b.classList.toggle("on", k < v));
 }
 function setValue(inp, v) {
   state[inp.key] = clamp(Math.round(v), 0, inp.max());
@@ -148,21 +147,10 @@ function setupInputs() {
     inp.range.max = max; inp.num.max = max;
     state[inp.key] = clamp(state[inp.key], 0, max);
     inp.range.value = state[inp.key]; inp.num.value = state[inp.key];
-    if (inp.bubbles) {
-      let html = "";
-      for (let g = 0; g < max; g += 10) {
-        html += '<span class="bgroup">';
-        for (let k = g; k < Math.min(max, g + 10); k++) html += `<span class="bub" data-k="${k + 1}"></span>`;
-        html += "</span>";
-      }
-      inp.bubbles.innerHTML = html;
-      inp.bubbles.addEventListener("click", (e) => {
-        const b = e.target.closest(".bub"); if (!b) return;
-        const k = Number(b.dataset.k);
-        setValue(inp, k === state[inp.key] ? k - 1 : k);
-        inp.num.value = state[inp.key];
-      });
-    }
+    inp.range.closest(".field").querySelectorAll("[data-step]").forEach((btn) => btn.addEventListener("click", () => {
+      setValue(inp, state[inp.key] + Number(btn.dataset.step));
+      inp.num.value = state[inp.key];
+    }));
     paintInput(inp);
     inp.range.addEventListener("input", () => { setValue(inp, Number(inp.range.value)); inp.num.value = state[inp.key]; });
     inp.num.addEventListener("input", () => {
@@ -202,6 +190,9 @@ function renderScore() {
   $("#tsMax").textContent = fmt1(calc.max);
   $("#n1Nota").textContent = fmt1(calc.nota1);
   $("#n2Nota").textContent = fmt1(calc.nota2);
+  $("#n1Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_1 * calc.nota1);
+  $("#n2Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_2 * calc.nota2);
+  $("#n3Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_3_REDACAO * state.n3);
   $("#notaMax").textContent = fmt1(calc.max);
   $("#notaBase").textContent = fmt1(calc.base);
   $("#scoreFormula").textContent = `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
