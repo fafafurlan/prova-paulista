@@ -71,17 +71,18 @@ const state = {
   n1: Number.isFinite(saved.n1) ? saved.n1 : CONFIG.DEFAULTS.n1,
   n2: Number.isFinite(saved.n2) ? saved.n2 : CONFIG.DEFAULTS.n2,
   n3: Number.isFinite(saved.n3) ? saved.n3 : CONFIG.DEFAULTS.n3,
-  inst: saved.inst || "",
-  chance: saved.chance || "",
-  turno: saved.turno || "",
-  sort: saved.sort || "ranking",
+  // Filtros não são salvos: cada visita começa com todos os cursos.
+  inst: "",
+  chance: "",
+  turno: "",
+  sort: "ranking",
   q: "",
   pins: Array.isArray(saved.pins) ? saved.pins.slice(0, CONFIG.MAX_PINS) : [],
   revId: Number.isInteger(saved.revId) ? saved.revId : null,
 };
 const persist = debounce(() => {
-  const { n1, n2, n3, inst, chance, turno, sort, pins, revId } = state;
-  store.set(CONFIG.STORAGE_KEY, { n1, n2, n3, inst, chance, turno, sort, pins, revId });
+  const { n1, n2, n3, pins, revId } = state;
+  store.set(CONFIG.STORAGE_KEY, { n1, n2, n3, pins, revId });
 }, 300);
 
 let CURSOS = [];
@@ -464,6 +465,8 @@ function setupFilters() {
     }
   });
   $("#compareTable").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
+  $("#btnClearFilters").addEventListener("click", clearFilters);
+  $("#btnClearFilters2").addEventListener("click", clearFilters);
   $("#btnClearPins").addEventListener("click", () => {
     const old = state.pins.slice(); state.pins = [];
     old.forEach((i) => { const el = nodeCache.get(i); if (el) updateRow(el, i); });
@@ -473,6 +476,32 @@ function setupFilters() {
   if ("IntersectionObserver" in window) {
     new IntersectionObserver((ents) => { if (ents.some((x) => x.isIntersecting)) renderMore(); }, { rootMargin: "900px 0px" }).observe($("#sentinel"));
   }
+}
+function activeFilters() {
+  const f = [];
+  if (state.q.trim()) f.push(`busca “${state.q.trim()}”`);
+  if (state.inst) f.push(state.inst);
+  if (state.chance) f.push(CHANCE_BY_KEY[state.chance].label);
+  if (state.turno) f.push(`turno ${state.turno}`);
+  return f;
+}
+function clearFilters() {
+  state.inst = ""; state.chance = ""; state.turno = ""; state.q = ""; qTokens = [];
+  $("#q").value = ""; $("#fTurno").value = "";
+  update({ reset: true });
+}
+function renderActiveFilters() {
+  const f = activeFilters();
+  const bar = $("#activeFilters");
+  bar.hidden = f.length === 0;
+  $("#activeList").textContent = f.join(" · ");
+  const empty = $("#empty");
+  if (!list.length) {
+    $("#emptyText").textContent = f.length
+      ? `Nenhum curso com ${f.length > 1 ? "estes filtros" : "este filtro"}: ${f.join(" · ")}.`
+      : "Nenhum curso encontrado.";
+  }
+  empty.querySelector("button").hidden = f.length === 0;
 }
 function syncFilterUI() {
   document.querySelectorAll("#instChips button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.inst === state.inst)));
@@ -489,6 +518,7 @@ function update(opts = {}) {
   renderStats(counts, total);
   syncFilterUI();
   renderGrid(!!opts.reset);
+  renderActiveFilters();
   renderCompare();
   renderReverse();
   $("#countLabel").textContent = `${nf0.format(list.length)} de ${nf0.format(CURSOS.length)}`;

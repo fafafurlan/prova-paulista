@@ -214,6 +214,10 @@
         </label>
       </div>
     </div>
+    <div class="active-filters" id="activeFilters" hidden>
+      <span>Filtrando por <b id="activeList"></b></span>
+      <button class="link-btn" id="btnClearFilters" type="button">Limpar filtros</button>
+    </div>
     <p class="sr-only" id="liveCount" aria-live="polite"></p>
     <div class="sheet table">
       <div class="thead" aria-hidden="true">
@@ -222,7 +226,10 @@
       <div class="tbody" id="grid" aria-busy="true">
         <div class="loading">Carregando cursos…</div>
       </div>
-      <p class="empty" id="empty" hidden>Nenhum curso com esses filtros. Limpe a busca ou troque a instituição.</p>
+      <div class="empty" id="empty" hidden>
+        <p id="emptyText">Nenhum curso encontrado.</p>
+        <button class="btn" id="btnClearFilters2" type="button">Limpar filtros e ver todos os cursos</button>
+      </div>
     </div>
     <div id="sentinel" class="sentinel" aria-hidden="true"></div>
   </section>

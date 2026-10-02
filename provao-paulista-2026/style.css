@@ -291,6 +291,10 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
 .pin:hover { color: var(--ink); border-color: var(--rule-strong); }
 .pin[aria-pressed="true"] { color: var(--pen-ink); background: var(--pen); border-color: var(--pen); }
 .loading, .empty { color: var(--ink-2); padding: 28px 18px; margin: 0; }
+.empty { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.empty p { margin: 0; }
+.active-filters { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; padding: 10px 14px; border: 1px solid var(--pen); border-radius: var(--r); background: var(--pen-soft); font-size: 14px; color: var(--ink-2); }
+.active-filters b { color: var(--ink); font-weight: 600; }
 .sentinel { height: 1px; }
 @media (max-width: 860px) {
   .thead { display: none; }
