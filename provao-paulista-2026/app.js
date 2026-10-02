@@ -265,7 +265,16 @@ function renderStats(counts, total) {
   document.querySelectorAll(".leg").forEach((b) => {
     const k = b.dataset.chance, n = counts[k];
     countTo(b.querySelector("[data-num]"), n, 400, (v) => nf0.format(Math.round(v)));
-    b.querySelector("[data-pct]").textContent = total ? `${Math.round((n / total) * 100)}%` : "0%";
+    const pct = b.querySelector("[data-pct]");
+    let note = "";
+    if (k === "muito" && n === 0) {
+      note = state.n3 + CONFIG.LIMITES_CHANCE.dificil >= 100
+        ? `Vazia com estimativa a partir de ${100 - CONFIG.LIMITES_CHANCE.dificil}: quem precisaria de mais de 100 na 3ª fica em “Fora de alcance”.`
+        : "Nenhum curso nesta faixa com as suas notas.";
+    }
+    const p100 = total ? (n / total) * 100 : 0;
+    pct.textContent = note || (n > 0 && p100 < 1 ? "<1%" : `${Math.round(p100)}%`);
+    pct.classList.toggle("note", !!note);
     b.setAttribute("aria-pressed", String(state.chance === k));
     b.setAttribute("aria-label", `${CHANCE_BY_KEY[k].label}: ${n} cursos. ${state.chance === k ? "Remover filtro" : "Filtrar lista"}`);
   });

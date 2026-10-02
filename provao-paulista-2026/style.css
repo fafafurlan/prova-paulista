@@ -194,6 +194,7 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
 .leg-top i { width: 10px; height: 10px; border-radius: 50%; background: var(--cc); flex: none; }
 .leg-num { font-size: 30px; line-height: 1; }
 .leg-pct { font-size: 12px; color: var(--ink-3); }
+.leg-pct.note { font-family: var(--f-body); line-height: 1.35; color: var(--ink-2); }
 @media (max-width: 640px) {
   .dist-legend { grid-template-columns: 1fr 1fr; }
   .leg { border-bottom: 1px solid var(--rule); }
