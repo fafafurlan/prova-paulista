@@ -539,6 +539,76 @@ function setupTheme() {
   paint();
 }
 
+/* ---------- personalização: nome e escola (só no aparelho) ---------- */
+const PROFILE_KEY = "pp26-profile", WELCOME_KEY = "pp26-welcome-done";
+let profile = (() => {
+  const p = store.get(PROFILE_KEY);
+  return p && typeof p.nome === "string" && p.nome.trim() ? { nome: p.nome.slice(0, 40), escola: String(p.escola || "").slice(0, 80) } : null;
+})();
+const cleanText = (s, max) => String(s || "").replace(/\s+/g, " ").trim().slice(0, max);
+const firstName = () => (profile ? profile.nome.split(" ")[0] : "");
+function initials(nome) {
+  const w = nome.split(" ").filter(Boolean);
+  return ((w[0] || "")[0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase();
+}
+function renderProfile() {
+  const hello = $("#hello");
+  hello.hidden = !profile;
+  if (profile) hello.innerHTML = `Olá, <b>${esc(firstName())}</b>!` + (profile.escola ? ` <span class="hello-sep" aria-hidden="true">·</span> ${esc(profile.escola)}` : "");
+  $("#idNome").textContent = profile ? profile.nome : "—";
+  $("#idEscola").textContent = profile && profile.escola ? profile.escola : "—";
+  $("#btnEditId").textContent = profile ? "Editar" : "Adicionar nome";
+  $("#profileAvatar").textContent = profile ? initials(profile.nome) : "+";
+  $("#profileLabel").textContent = profile ? firstName() : "Personalizar";
+  $("#btnProfile").setAttribute("aria-label", profile ? `Editar nome e escola (${profile.nome})` : "Adicionar nome e escola");
+  $("#shareIdWrap").hidden = !profile;
+}
+function setupProfile() {
+  const modal = $("#welcomeModal"), form = $("#welcomeForm"), nome = $("#pfNome"), escola = $("#pfEscola"), err = $("#pfError");
+  let lastFocus = null;
+  const open = () => {
+    lastFocus = document.activeElement;
+    nome.value = profile ? profile.nome : "";
+    escola.value = profile ? profile.escola : "";
+    err.hidden = true; nome.removeAttribute("aria-invalid");
+    $("#pfClear").hidden = !profile;
+    $("#pfSave").textContent = profile ? "Salvar" : "Começar";
+    modal.hidden = false;
+    nome.focus();
+  };
+  const close = () => {
+    modal.hidden = true;
+    try { localStorage.setItem(WELCOME_KEY, "1"); } catch (e) { /* ok */ }
+    if (lastFocus && lastFocus !== document.body) lastFocus.focus();
+  };
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const n = cleanText(nome.value, 40);
+    if (!n) { err.hidden = false; nome.setAttribute("aria-invalid", "true"); nome.focus(); return; }
+    profile = { nome: n, escola: cleanText(escola.value, 80) };
+    store.set(PROFILE_KEY, profile);
+    renderProfile();
+    close();
+    toast(`Pronto, ${firstName()}! Seu boletim está personalizado.`);
+  });
+  nome.addEventListener("input", () => { if (nome.value.trim()) { err.hidden = true; nome.removeAttribute("aria-invalid"); } });
+  $("#pfSkip").addEventListener("click", close);
+  $("#pfClear").addEventListener("click", () => {
+    profile = null;
+    try { localStorage.removeItem(PROFILE_KEY); } catch (e) { /* ok */ }
+    renderProfile();
+    close();
+    toast("Seus dados foram apagados deste aparelho.");
+  });
+  modal.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
+  $("#btnProfile").addEventListener("click", open);
+  $("#btnEditId").addEventListener("click", open);
+  renderProfile();
+  let seen = false;
+  try { seen = !!localStorage.getItem(WELCOME_KEY); } catch (e) { seen = true; }
+  if (!seen && !profile) open();
+}
+
 /* ---------- compartilhar: boletim em imagem (canvas) ---------- */
 function topBoaChance(n = 3) {
   const idx = [];
@@ -557,7 +627,7 @@ function fitText(ctx, text, maxW) {
   let t = text; while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
   return t + "…";
 }
-async function drawShareCard() {
+async function drawShareCard(withId = false) {
   try {
     await Promise.all(['800 condensed 100px "Archivo"', '800 100px "Archivo"', '600 20px "IBM Plex Mono"', '500 20px "IBM Plex Mono"', '600 20px "IBM Plex Sans"', '400 20px "IBM Plex Sans"'].map((f) => document.fonts.load(f)));
   } catch (e) { /* usa fontes de fallback */ }
@@ -578,8 +648,13 @@ async function drawShareCard() {
   // cabeçalho
   ctx.strokeStyle = C.pen; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(X + 16, 128, 16, 0, Math.PI * 2); ctx.stroke();
   ctx.fillStyle = C.pen; ctx.beginPath(); ctx.arc(X + 16, 128, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = C.ink; ctx.font = `700 30px ${D}`; ctx.fillText("Simulador Provão Paulista 2026", X + 50, 139);
-  ctx.fillStyle = C.ink3; ctx.font = `500 22px ${M}`; ctx.textAlign = "right"; ctx.fillText("BOLETIM", R, 137); ctx.textAlign = "left";
+  ctx.fillStyle = C.ink; ctx.font = `700 30px ${D}`; ctx.fillText(withId && profile ? "Provão Paulista 2026" : "Simulador Provão Paulista 2026", X + 50, 139);
+  ctx.textAlign = "right";
+  if (withId && profile) {
+    ctx.fillStyle = C.ink; ctx.font = `600 24px ${S}`; ctx.fillText(fitText(ctx, profile.nome, 330), R, profile.escola ? 122 : 137);
+    if (profile.escola) { ctx.fillStyle = C.ink3; ctx.font = `400 20px ${S}`; ctx.fillText(fitText(ctx, profile.escola, 330), R, 152); }
+  } else { ctx.fillStyle = C.ink3; ctx.font = `500 22px ${M}`; ctx.fillText("BOLETIM", R, 137); }
+  ctx.textAlign = "left";
   line(180);
 
   // nota
@@ -646,14 +721,18 @@ function setupShare() {
   const modal = $("#shareModal");
   let blob = null, lastFocus = null;
   const close = () => { modal.hidden = true; if (lastFocus) lastFocus.focus(); };
-  $("#btnShare").addEventListener("click", async () => {
-    if (!CURSOS.length) return;
-    lastFocus = document.activeElement;
-    const cv = await drawShareCard();
+  const build = async () => {
+    const cv = await drawShareCard($("#shareId").checked);
     const url = cv.toDataURL("image/png");
     $("#shareImg").src = url;
     $("#shareDownload").href = url;
     blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+  };
+  $("#shareId").addEventListener("change", build);
+  $("#btnShare").addEventListener("click", async () => {
+    if (!CURSOS.length) return;
+    lastFocus = document.activeElement;
+    await build();
     modal.hidden = false;
     modal.querySelector(".btn-icon[data-close]").focus();
   });
@@ -688,6 +767,7 @@ async function boot() {
   setupStats();
   setupFilters();
   setupShare();
+  setupProfile();
   update();
   try {
     const res = await fetch(CONFIG.DATA_URL);

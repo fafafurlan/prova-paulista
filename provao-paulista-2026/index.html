@@ -45,6 +45,7 @@
       <span class="tb-max mono">máx <span id="tsMax">0,0</span></span>
     </div>
     <div class="topbar-actions">
+      <button class="btn btn-ghost profile-btn" id="btnProfile" type="button" aria-label="Editar nome e escola"><span class="avatar" id="profileAvatar" aria-hidden="true"></span><span class="btn-text" id="profileLabel">Personalizar</span></button>
       <button class="btn btn-ghost" id="btnShare" type="button" data-icon="share"><span class="btn-text">Compartilhar</span></button>
       <button class="btn btn-icon" id="btnTheme" type="button" aria-label="Alternar tema"></button>
     </div>
@@ -54,6 +55,7 @@
 <main id="topo">
   <section class="intro wrap">
     <p class="kicker mono">Provão Paulista Seriado 2026 · Fórmula do Anexo V, Quadro II</p>
+    <p class="hello" id="hello" hidden></p>
     <h1>Veja sua nota final e suas chances, curso a curso.</h1>
     <p class="lede">Informe os acertos do Provão I e II e uma estimativa para a 3ª série + redação. O simulador calcula a nota final projetada e compara com a nota estimada de <b id="heroTotal">1.805</b> cursos da USP, Unesp, Unicamp, Fatec e Univesp.</p>
   </section>
@@ -62,7 +64,11 @@
     <div class="sheet boletim">
       <div class="sheet-head">
         <h2 id="boletimTitle">Boletim</h2>
-        <span class="sheet-tag mono">Simulação</span>
+        <dl class="sheet-id" id="sheetId">
+          <div><dt class="mono">Aluno(a)</dt><dd id="idNome">—</dd></div>
+          <div><dt class="mono">Escola</dt><dd id="idEscola">—</dd></div>
+        </dl>
+        <button class="link-btn" id="btnEditId" type="button">Editar</button>
       </div>
       <div class="boletim-grid">
         <div class="fields">
@@ -269,6 +275,7 @@
       <button class="btn btn-icon" type="button" data-close aria-label="Fechar" data-icon="x"></button>
     </div>
     <img id="shareImg" alt="Imagem com sua nota final projetada e suas chances" width="1080" height="1350">
+    <label class="check" id="shareIdWrap" hidden><input type="checkbox" id="shareId"> Mostrar meu nome e escola na imagem</label>
     <div class="modal-actions">
       <a class="btn btn-primary" id="shareDownload" download="meu-provao-paulista-2026.png" href="#" data-icon="download">Baixar imagem</a>
       <button class="btn" id="shareNative" type="button" data-icon="share">Compartilhar</button>
@@ -276,6 +283,28 @@
     </div>
     <p class="modal-hint" id="shareHint">No celular, toque e segure a imagem para salvar.</p>
   </div>
+</div>
+
+<div class="modal" id="welcomeModal" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="modal-backdrop"></div>
+  <form class="modal-card welcome" id="welcomeForm" novalidate>
+    <p class="kicker mono">Simulador Provão Paulista 2026</p>
+    <h2 id="welcomeTitle">Vamos montar o seu boletim</h2>
+    <p class="welcome-sub">Diga seu nome e sua escola para personalizar o simulador.</p>
+    <label class="input-row" for="pfNome"><span>Seu nome</span>
+      <input id="pfNome" name="nome" type="text" autocomplete="given-name" maxlength="40" placeholder="Ex.: Ana Souza" required>
+    </label>
+    <label class="input-row" for="pfEscola"><span>Escola em que você estuda <small>(opcional)</small></span>
+      <input id="pfEscola" name="escola" type="text" autocomplete="off" maxlength="80" placeholder="Ex.: E.E. Prof. João da Silva, Campinas">
+    </label>
+    <p class="form-error" id="pfError" hidden>Digite seu nome para continuar, ou toque em “Pular”.</p>
+    <div class="modal-actions">
+      <button class="btn btn-primary" type="submit" id="pfSave">Começar</button>
+      <button class="btn" type="button" id="pfSkip">Pular</button>
+      <button class="link-btn pf-clear" type="button" id="pfClear" hidden>Apagar meus dados</button>
+    </div>
+    <p class="modal-hint">Seus dados ficam só neste aparelho. Não enviamos nada para nenhum servidor.</p>
+  </form>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
