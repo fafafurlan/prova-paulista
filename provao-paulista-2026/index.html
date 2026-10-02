@@ -294,9 +294,14 @@
     <label class="input-row" for="pfNome"><span>Seu nome</span>
       <input id="pfNome" name="nome" type="text" autocomplete="given-name" maxlength="40" placeholder="Ex.: Ana Souza" required>
     </label>
-    <label class="input-row" for="pfEscola"><span>Escola em que você estuda <small>(opcional)</small></span>
-      <input id="pfEscola" name="escola" type="text" autocomplete="off" maxlength="80" placeholder="Ex.: E.E. Prof. João da Silva, Campinas">
-    </label>
+    <div class="input-row">
+      <label for="pfEscola">Escola em que você estuda <small>(opcional)</small></label>
+      <div class="school-field">
+        <input id="pfEscola" name="escola" type="text" autocomplete="off" maxlength="120" placeholder="Digite o nome da escola ou a cidade" role="combobox" aria-expanded="false" aria-controls="pfEscolaList" aria-autocomplete="list" aria-describedby="pfEscolaHint">
+        <ul id="pfEscolaList" class="school-list" role="listbox" aria-label="Escolas sugeridas" hidden></ul>
+      </div>
+      <p class="school-hint" id="pfEscolaHint">Escolas estaduais, ETECs e municipais com ensino médio em SP. Não achou? Digite o nome mesmo.</p>
+    </div>
     <p class="form-error" id="pfError" hidden>Digite seu nome para continuar, ou toque em “Pular”.</p>
     <div class="modal-actions">
       <button class="btn btn-primary" type="submit" id="pfSave">Começar</button>

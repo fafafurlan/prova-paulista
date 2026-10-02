@@ -10,10 +10,12 @@ provao-paulista-2026/
 ├── style.css             # tema escuro/claro, glassmorphism, animações
 ├── app.js                # CONFIG, cálculo, filtros, lazy render, comparador, compartilhar
 ├── cursos.json           # 1.805 cursos extraídos da aba "Todos os cursos"
+├── escolas.json          # 4.060 escolas de SP com ensino médio (sugestões no campo "Escola")
 ├── og.png                # imagem de pré-visualização para redes sociais (1200×630)
 ├── vercel.json           # headers e cache para Vercel
 ├── netlify.toml          # alternativa para Netlify
-└── scripts/xlsx_to_json.py  # regenera cursos.json a partir da planilha
+├── scripts/xlsx_to_json.py    # regenera cursos.json a partir da planilha
+└── scripts/build_escolas.py   # regenera escolas.json a partir do Censo Escolar
 ```
 
 ## Fórmula (Anexo V, Quadro II)
@@ -78,3 +80,15 @@ netlify deploy --prod --dir .
 3. Faça commit e push de `cursos.json`. Com o projeto conectado à Vercel, o deploy é automático; senão rode `vercel --prod` de novo.
 
 Para mudar o número de questões das provas ou os limites de chance, edite só o `CONFIG` em `app.js`.
+
+## Atualizar a lista de escolas
+
+`escolas.json` traz as escolas públicas de SP que oferecem ensino médio (rede estadual, ETECs e municipais), com nome e cidade. A fonte é o diretório de escolas da [Base dos Dados](https://basedosdados.org/), montado a partir do Censo Escolar do INEP. O script também ajusta os nomes do formato do Censo ("RUBENS PAIVA DEPUTADO") para o formato que os alunos conhecem ("E.E. Deputado Rubens Paiva").
+
+```bash
+python3 scripts/build_escolas.py      # baixa os dados e regrava escolas.json
+```
+
+## Personalização e privacidade
+
+Nome e escola informados pelo aluno ficam só no `localStorage` do navegador (`pp26-profile`). Nada é enviado a servidores. O próprio aluno pode editar ou apagar esses dados no botão do topo.

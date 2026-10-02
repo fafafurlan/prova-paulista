@@ -543,9 +543,11 @@ function setupTheme() {
 const PROFILE_KEY = "pp26-profile", WELCOME_KEY = "pp26-welcome-done";
 let profile = (() => {
   const p = store.get(PROFILE_KEY);
-  return p && typeof p.nome === "string" && p.nome.trim() ? { nome: p.nome.slice(0, 40), escola: String(p.escola || "").slice(0, 80) } : null;
+  return p && typeof p.nome === "string" && p.nome.trim()
+    ? { nome: p.nome.slice(0, 40), escola: String(p.escola || "").slice(0, 120), cidade: String(p.cidade || "").slice(0, 60) } : null;
 })();
 const cleanText = (s, max) => String(s || "").replace(/\s+/g, " ").trim().slice(0, max);
+const escolaLabel = () => (profile && profile.escola ? profile.escola + (profile.cidade ? `, ${profile.cidade}` : "") : "");
 const firstName = () => (profile ? profile.nome.split(" ")[0] : "");
 function initials(nome) {
   const w = nome.split(" ").filter(Boolean);
@@ -554,22 +556,75 @@ function initials(nome) {
 function renderProfile() {
   const hello = $("#hello");
   hello.hidden = !profile;
-  if (profile) hello.innerHTML = `Olá, <b>${esc(firstName())}</b>!` + (profile.escola ? ` <span class="hello-sep" aria-hidden="true">·</span> ${esc(profile.escola)}` : "");
+  if (profile) hello.innerHTML = `Olá, <b>${esc(firstName())}</b>!` + (profile.escola ? ` <span class="hello-sep" aria-hidden="true">·</span> ${esc(escolaLabel())}` : "");
   $("#idNome").textContent = profile ? profile.nome : "—";
-  $("#idEscola").textContent = profile && profile.escola ? profile.escola : "—";
+  $("#idEscola").textContent = escolaLabel() || "—";
   $("#btnEditId").textContent = profile ? "Editar" : "Adicionar nome";
   $("#profileAvatar").textContent = profile ? initials(profile.nome) : "+";
   $("#profileLabel").textContent = profile ? firstName() : "Personalizar";
   $("#btnProfile").setAttribute("aria-label", profile ? `Editar nome e escola (${profile.nome})` : "Adicionar nome e escola");
   $("#shareIdWrap").hidden = !profile;
 }
+/* Lista de escolas (escolas.json): carregada só quando a pessoa vai preencher a escola. */
+let ESCOLAS = null, escolasP = null;
+const normEscola = (s) => norm(s).replace(/\./g, "").replace(/[-,()]/g, " ");
+function loadEscolas() {
+  escolasP = escolasP || fetch("escolas.json").then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then((rows) => (ESCOLAS = rows.map(([n, c]) => ({ n, c, s: normEscola(`${n} ${c}`), k: normEscola(n.replace(/^(E\.E\.|ETEC|EMEFM|EM)\s+/, "")) }))))
+    .catch(() => { escolasP = null; ESCOLAS = null; });
+  return escolasP;
+}
+function setupSchoolField(input, onPick) {
+  const listEl = $("#pfEscolaList");
+  let matches = [], active = -1;
+  const close = () => { listEl.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); active = -1; };
+  const paint = () => {
+    listEl.innerHTML = matches.length
+      ? matches.map((e, i) => `<li role="option" id="esc-opt-${i}" data-i="${i}" aria-selected="${i === active}"><b>${esc(e.n)}</b><span>${esc(e.c)}</span></li>`).join("")
+      : `<li class="none" role="option" aria-disabled="true">Nenhuma escola encontrada. Pode deixar o nome como digitou.</li>`;
+    if (active >= 0) input.setAttribute("aria-activedescendant", "esc-opt-" + active); else input.removeAttribute("aria-activedescendant");
+    listEl.hidden = false;
+    input.setAttribute("aria-expanded", "true");
+  };
+  const search = debounce(async () => {
+    const q = normEscola(input.value).trim();
+    if (q.length < 2) { close(); return; }
+    await loadEscolas();
+    if (!ESCOLAS) { close(); return; }
+    const toks = q.split(/\s+/);
+    const found = [];
+    for (const e of ESCOLAS) if (toks.every((t) => e.s.includes(t))) found.push(e);
+    found.sort((a, b) => (b.k.startsWith(q) - a.k.startsWith(q)) || a.n.localeCompare(b.n, "pt-BR"));
+    matches = found.slice(0, 8);
+    active = matches.length ? 0 : -1;
+    paint();
+  }, 120);
+  const choose = (e) => { input.value = `${e.n}, ${e.c}`; onPick(e); close(); };
+  input.addEventListener("focus", loadEscolas, { once: true });
+  input.addEventListener("input", () => { onPick(null); search(); });
+  input.addEventListener("keydown", (ev) => {
+    if (listEl.hidden || !matches.length) { if (ev.key === "Escape" && !listEl.hidden) { close(); ev.stopPropagation(); } return; }
+    if (ev.key === "ArrowDown") { active = (active + 1) % matches.length; paint(); ev.preventDefault(); }
+    else if (ev.key === "ArrowUp") { active = (active - 1 + matches.length) % matches.length; paint(); ev.preventDefault(); }
+    else if (ev.key === "Enter" && active >= 0) { choose(matches[active]); ev.preventDefault(); }
+    else if (ev.key === "Escape") { close(); ev.stopPropagation(); }
+  });
+  listEl.addEventListener("mousedown", (ev) => { const li = ev.target.closest("li[data-i]"); if (li) { ev.preventDefault(); choose(matches[Number(li.dataset.i)]); } });
+  input.addEventListener("blur", () => setTimeout(close, 120));
+  return close;
+}
+
 function setupProfile() {
   const modal = $("#welcomeModal"), form = $("#welcomeForm"), nome = $("#pfNome"), escola = $("#pfEscola"), err = $("#pfError");
-  let lastFocus = null;
+  let lastFocus = null, picked = null;
+  const closeList = setupSchoolField(escola, (e) => { picked = e; });
   const open = () => {
     lastFocus = document.activeElement;
+    loadEscolas();
     nome.value = profile ? profile.nome : "";
-    escola.value = profile ? profile.escola : "";
+    escola.value = escolaLabel();
+    picked = profile && profile.cidade ? { n: profile.escola, c: profile.cidade } : null;
+    closeList();
     err.hidden = true; nome.removeAttribute("aria-invalid");
     $("#pfClear").hidden = !profile;
     $("#pfSave").textContent = profile ? "Salvar" : "Começar";
@@ -585,7 +640,9 @@ function setupProfile() {
     e.preventDefault();
     const n = cleanText(nome.value, 40);
     if (!n) { err.hidden = false; nome.setAttribute("aria-invalid", "true"); nome.focus(); return; }
-    profile = { nome: n, escola: cleanText(escola.value, 80) };
+    profile = picked
+      ? { nome: n, escola: picked.n, cidade: picked.c }
+      : { nome: n, escola: cleanText(escola.value, 120), cidade: "" };
     store.set(PROFILE_KEY, profile);
     renderProfile();
     close();
@@ -652,7 +709,7 @@ async function drawShareCard(withId = false) {
   ctx.textAlign = "right";
   if (withId && profile) {
     ctx.fillStyle = C.ink; ctx.font = `600 24px ${S}`; ctx.fillText(fitText(ctx, profile.nome, 330), R, profile.escola ? 122 : 137);
-    if (profile.escola) { ctx.fillStyle = C.ink3; ctx.font = `400 20px ${S}`; ctx.fillText(fitText(ctx, profile.escola, 330), R, 152); }
+    if (profile.escola) { ctx.fillStyle = C.ink3; ctx.font = `400 20px ${S}`; ctx.fillText(fitText(ctx, escolaLabel(), 330), R, 152); }
   } else { ctx.fillStyle = C.ink3; ctx.font = `500 22px ${M}`; ctx.fillText("BOLETIM", R, 137); }
   ctx.textAlign = "left";
   line(180);
