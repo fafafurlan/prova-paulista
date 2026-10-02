@@ -8,7 +8,7 @@ const CONFIG = {
   PESO_SERIE_3_REDACAO: 0.5,     // 30% prova da 3ª série + 20% redação
   LIMITES_CHANCE: { boa: 5, possivel: 15, dificil: 25 }, // pontos que faltam na média
   DATA_URL: "cursos.json",
-  PAGE_SIZE: 48,                 // cards renderizados por lote (lazy render)
+  PAGE_SIZE: 60,                 // linhas renderizadas por lote (lazy render)
   MAX_PINS: 4,
   SITE_URL: "prova-paulista-provao-paulista-2026.vercel.app",
   STORAGE_KEY: "pp26-state",
@@ -16,13 +16,12 @@ const CONFIG = {
 };
 
 const INSTITUICOES = ["USP", "UNESP", "UNICAMP", "FATEC", "UNIVESP"];
-const INST_COLORS = { USP: ["--usp", "--usp-fg"], UNESP: ["--unesp", "--unesp-fg"], UNICAMP: ["--unicamp", "--unicamp-fg"], FATEC: ["--fatec", "--fatec-fg"], UNIVESP: ["--univesp", "--univesp-fg"] };
 const CHANCES = [
-  { key: "boa", label: "Boa chance", icon: "check" },
-  { key: "possivel", label: "Possível", icon: "trend" },
-  { key: "dificil", label: "Difícil", icon: "alert" },
-  { key: "muito", label: "Muito difícil", icon: "octagon" },
-  { key: "fora", label: "Fora de alcance", icon: "xcircle" },
+  { key: "boa", label: "Boa chance" },
+  { key: "possivel", label: "Possível" },
+  { key: "dificil", label: "Difícil" },
+  { key: "muito", label: "Muito difícil" },
+  { key: "fora", label: "Fora de alcance" },
 ];
 const CHANCE_BY_KEY = Object.fromEntries(CHANCES.map((c, i) => [c.key, { ...c, order: i }]));
 const TURNOS = ["Integral", "Manhã", "Tarde", "Noite", "Misto", "EaD"];
@@ -32,20 +31,11 @@ const ICONS = {
   search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2m-7.07-14.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
   moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
-  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98M15.41 6.51l-6.82 3.98"/>',
+  share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="m16 6-4-4-4 4M12 2v13"/>',
   pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
-  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/>',
   copy: '<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
-  check: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
-  trend: '<path d="m22 7-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>',
-  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>',
-  octagon: '<path d="M12 16h.01M12 8v4"/><path d="M15.31 2a2 2 0 0 1 1.42.59l4.68 4.68a2 2 0 0 1 .59 1.42v6.62a2 2 0 0 1-.59 1.42l-4.68 4.68a2 2 0 0 1-1.42.59H8.69a2 2 0 0 1-1.42-.59l-4.68-4.68A2 2 0 0 1 2 15.31V8.69a2 2 0 0 1 .59-1.42l4.68-4.68A2 2 0 0 1 8.69 2z"/>',
-  xcircle: '<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>',
-  map: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
-  building: '<path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/>',
 };
 const icon = (name) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
 
@@ -127,18 +117,29 @@ function recompute() {
   }
 }
 const proximity = (i) => (need[i] <= 0 ? 100 : clamp((state.n3 / need[i]) * 100, 0, 100));
+function gapText(i) {
+  if (need[i] > 100) return "acima de 100";
+  if (need[i] <= state.n3) return "você já alcança";
+  return `faltam ${fmt1(need[i] - state.n3)}`;
+}
 
 /* ---------- inputs ---------- */
 const inputs = [
-  { key: "n1", range: $("#n1Range"), num: $("#n1Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos" },
-  { key: "n2", range: $("#n2Range"), num: $("#n2Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos" },
+  { key: "n1", range: $("#n1Range"), num: $("#n1Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos", bubbles: $('.bubbles[data-for="n1"]') },
+  { key: "n2", range: $("#n2Range"), num: $("#n2Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos", bubbles: $('.bubbles[data-for="n2"]') },
   { key: "n3", range: $("#n3Range"), num: $("#n3Num"), max: () => 100, unit: "pontos" },
 ];
-function paintRange(inp) {
-  const max = inp.max();
-  inp.num.style.width = Math.max(1, String(inp.num.value).length) + 0.4 + "ch";
-  inp.range.style.setProperty("--p", (state[inp.key] / max) * 100 + "%");
-  inp.range.setAttribute("aria-valuetext", `${nf0.format(state[inp.key])} ${inp.unit} de ${max}`);
+function paintInput(inp) {
+  const max = inp.max(), v = state[inp.key];
+  inp.range.style.setProperty("--p", (v / max) * 100 + "%");
+  inp.range.setAttribute("aria-valuetext", `${nf0.format(v)} ${inp.unit} de ${max}`);
+  if (inp.bubbles) inp.bubbles.querySelectorAll(".bub").forEach((b, k) => b.classList.toggle("on", k < v));
+}
+function setValue(inp, v) {
+  state[inp.key] = clamp(Math.round(v), 0, inp.max());
+  inp.range.value = state[inp.key];
+  paintInput(inp);
+  scheduleUpdate();
 }
 function setupInputs() {
   document.querySelectorAll("[data-total]").forEach((el) => (el.textContent = CONFIG.TOTAL_QUESTOES_PROVA));
@@ -147,20 +148,26 @@ function setupInputs() {
     inp.range.max = max; inp.num.max = max;
     state[inp.key] = clamp(state[inp.key], 0, max);
     inp.range.value = state[inp.key]; inp.num.value = state[inp.key];
-    paintRange(inp);
-    inp.range.addEventListener("input", () => {
-      state[inp.key] = Number(inp.range.value);
-      inp.num.value = state[inp.key];
-      paintRange(inp);
-      scheduleUpdate();
-    });
+    if (inp.bubbles) {
+      let html = "";
+      for (let g = 0; g < max; g += 10) {
+        html += '<span class="bgroup">';
+        for (let k = g; k < Math.min(max, g + 10); k++) html += `<span class="bub" data-k="${k + 1}"></span>`;
+        html += "</span>";
+      }
+      inp.bubbles.innerHTML = html;
+      inp.bubbles.addEventListener("click", (e) => {
+        const b = e.target.closest(".bub"); if (!b) return;
+        const k = Number(b.dataset.k);
+        setValue(inp, k === state[inp.key] ? k - 1 : k);
+        inp.num.value = state[inp.key];
+      });
+    }
+    paintInput(inp);
+    inp.range.addEventListener("input", () => { setValue(inp, Number(inp.range.value)); inp.num.value = state[inp.key]; });
     inp.num.addEventListener("input", () => {
       const v = parseFloat(String(inp.num.value).replace(",", "."));
-      if (!Number.isFinite(v)) return;
-      state[inp.key] = clamp(Math.round(v), 0, max);
-      inp.range.value = state[inp.key];
-      paintRange(inp);
-      scheduleUpdate();
+      if (Number.isFinite(v)) setValue(inp, v);
     });
     inp.num.addEventListener("change", () => { inp.num.value = state[inp.key]; });
     inp.num.addEventListener("focus", () => inp.num.select());
@@ -174,29 +181,29 @@ function scheduleUpdate() {
   requestAnimationFrame(() => { rafPending = false; update(); });
 }
 
-/* ---------- score panel ---------- */
+/* ---------- boletim ---------- */
 const counters = new WeakMap();
-function countTo(el, to, dur = 450) {
+function countTo(el, to, dur = 450, f = fmt1) {
   const from = counters.get(el) ?? 0;
   counters.set(el, to);
-  if (reduceMotion() || Math.abs(to - from) < 0.05) { el.textContent = fmt1(to); return; }
+  if (reduceMotion() || Math.abs(to - from) < 0.05) { el.textContent = f(to); return; }
   const t0 = performance.now();
   const step = (t) => {
     if (counters.get(el) !== to) return;
     const k = Math.min(1, (t - t0) / dur);
-    const e = 1 - Math.pow(1 - k, 3);
-    el.textContent = fmt1(from + (to - from) * e);
+    el.textContent = f(from + (to - from) * (1 - Math.pow(1 - k, 3)));
     if (k < 1) requestAnimationFrame(step);
   };
   requestAnimationFrame(step);
 }
 function renderScore() {
-  countTo($("#notaFinal"), calc.final, 700);
-  countTo($("#tsNota"), calc.final, 450);
+  countTo($("#notaFinal"), calc.final, 600);
+  countTo($("#tsNota"), calc.final, 400);
   $("#tsMax").textContent = fmt1(calc.max);
   $("#n1Nota").textContent = fmt1(calc.nota1);
   $("#n2Nota").textContent = fmt1(calc.nota2);
   $("#notaMax").textContent = fmt1(calc.max);
+  $("#notaBase").textContent = fmt1(calc.base);
   $("#scoreFormula").textContent = `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
   $("#sbFill").style.width = calc.final + "%";
   $("#sbMax").style.width = calc.max + "%";
@@ -206,6 +213,7 @@ function renderScore() {
 }
 
 /* ---------- filtros ---------- */
+let qTokens = [];
 function baseFilter(i) {
   const c = CURSOS[i];
   if (state.inst && c.instituicao !== state.inst) return false;
@@ -213,7 +221,6 @@ function baseFilter(i) {
   if (qTokens.length) { for (const t of qTokens) if (!c._s.includes(t)) return false; }
   return true;
 }
-let qTokens = [];
 function buildList() {
   const out = [];
   const counts = { boa: 0, possivel: 0, dificil: 0, muito: 0, fora: 0 };
@@ -225,110 +232,95 @@ function buildList() {
     if (state.chance && chanceOf[i] !== state.chance) continue;
     out.push(i);
   }
+  const R = (a, b) => CURSOS[a].ranking - CURSOS[b].ranking;
   const by = {
-    ranking: (a, b) => CURSOS[a].ranking - CURSOS[b].ranking,
-    chance: (a, b) => CHANCE_BY_KEY[chanceOf[a]].order - CHANCE_BY_KEY[chanceOf[b]].order || need[b] - need[a] || CURSOS[a].ranking - CURSOS[b].ranking,
-    vagas: (a, b) => CURSOS[b].vagas - CURSOS[a].vagas || CURSOS[a].ranking - CURSOS[b].ranking,
-    notaAsc: (a, b) => CURSOS[a].notaEstimada - CURSOS[b].notaEstimada || CURSOS[a].ranking - CURSOS[b].ranking,
-    notaDesc: (a, b) => CURSOS[b].notaEstimada - CURSOS[a].notaEstimada || CURSOS[a].ranking - CURSOS[b].ranking,
-  }[state.sort] || ((a, b) => a - b);
+    ranking: R,
+    chance: (a, b) => CHANCE_BY_KEY[chanceOf[a]].order - CHANCE_BY_KEY[chanceOf[b]].order || need[b] - need[a] || R(a, b),
+    vagas: (a, b) => CURSOS[b].vagas - CURSOS[a].vagas || R(a, b),
+    notaAsc: (a, b) => CURSOS[a].notaEstimada - CURSOS[b].notaEstimada || R(a, b),
+    notaDesc: (a, b) => CURSOS[b].notaEstimada - CURSOS[a].notaEstimada || R(a, b),
+  }[state.sort] || R;
   out.sort(by);
   return { out, counts, total };
 }
 
-/* ---------- stats ---------- */
+/* ---------- distribuição por chance ---------- */
 function setupStats() {
+  $("#distBar").innerHTML = CHANCES.map((c) => `<span class="dist-seg" data-c="${c.key}" style="flex-grow:1"></span>`).join("");
   $("#stats").innerHTML = CHANCES.map((c) => `
-    <button class="stat" type="button" data-chance="${c.key}" aria-pressed="false" style="--cc:var(--c-${c.key})">
-      <span class="stat-top">${icon(c.icon)} ${c.label}</span>
-      <span class="stat-num mono" data-num>0</span>
-      <span class="stat-sub" data-sub>cursos</span>
+    <button class="leg" type="button" data-chance="${c.key}" aria-pressed="false" style="--cc:var(--c-${c.key})">
+      <span class="leg-top"><i></i>${c.label}</span>
+      <span class="leg-num num" data-num>0</span>
+      <span class="leg-pct mono" data-pct></span>
     </button>`).join("");
   $("#stats").addEventListener("click", (e) => {
-    const b = e.target.closest(".stat"); if (!b) return;
+    const b = e.target.closest(".leg"); if (!b) return;
     const k = b.dataset.chance;
     state.chance = state.chance === k ? "" : k;
-    $("#fChance").value = state.chance;
     if (k === "boa" && state.chance === "boa") celebrate(b);
     update({ reset: true });
   });
 }
 function renderStats(counts, total) {
-  document.querySelectorAll(".stat").forEach((b) => {
-    const k = b.dataset.chance;
-    const numEl = b.querySelector("[data-num]");
-    const prev = counters.get(numEl) ?? 0;
-    counters.set(numEl, counts[k]);
-    animateInt(numEl, prev, counts[k]);
-    b.querySelector("[data-sub]").textContent = `de ${nf0.format(total)} cursos`;
+  $("#distTotal").textContent = nf0.format(total);
+  const bar = $("#distBar");
+  bar.classList.toggle("filtered", !!state.chance);
+  bar.querySelectorAll(".dist-seg").forEach((s) => {
+    s.style.flexGrow = counts[s.dataset.c];
+    s.style.display = counts[s.dataset.c] ? "" : "none";
+    s.classList.toggle("sel", state.chance === s.dataset.c);
+  });
+  document.querySelectorAll(".leg").forEach((b) => {
+    const k = b.dataset.chance, n = counts[k];
+    countTo(b.querySelector("[data-num]"), n, 400, (v) => nf0.format(Math.round(v)));
+    b.querySelector("[data-pct]").textContent = total ? `${Math.round((n / total) * 100)}%` : "0%";
     b.setAttribute("aria-pressed", String(state.chance === k));
-    b.setAttribute("aria-label", `${CHANCE_BY_KEY[k].label}: ${counts[k]} cursos. ${state.chance === k ? "Remover filtro" : "Filtrar"}`);
+    b.setAttribute("aria-label", `${CHANCE_BY_KEY[k].label}: ${n} cursos. ${state.chance === k ? "Remover filtro" : "Filtrar lista"}`);
   });
 }
-function animateInt(el, from, to) {
-  if (reduceMotion() || from === to) { el.textContent = nf0.format(to); return; }
-  const t0 = performance.now(), dur = 400;
-  const step = (t) => {
-    if (counters.get(el) !== to) return;
-    const k = Math.min(1, (t - t0) / dur);
-    el.textContent = nf0.format(Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3))));
-    if (k < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
-}
 
-/* ---------- cards ---------- */
-function createCard(i) {
+/* ---------- linhas da tabela ---------- */
+function createRow(i) {
   const c = CURSOS[i];
   const el = document.createElement("article");
-  el.className = "card enter";
+  el.className = "row enter";
   el.dataset.id = i;
+  const meta = [c.unidade, c.municipio, c.turno].filter(Boolean).map(esc).join(" · ");
   el.innerHTML = `
-    <div class="card-top">
-      <span class="inst inst-${esc(c.instituicao)}">${esc(c.instituicao)}</span>
-      <span class="rank mono">#${c.ranking}</span>
-      <button class="pin" type="button" data-pin aria-pressed="false" aria-label="Fixar ${esc(c.curso)} no comparador">${icon("pin")}</button>
+    <div class="c-course">
+      <div class="c-tags"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span><span class="rank mono">#${c.ranking}</span></div>
+      <h3>${esc(c.curso)}</h3>
+      <p class="meta">${meta}</p>
     </div>
-    <h3>${esc(c.curso)}</h3>
-    <p class="meta">
-      <span>${icon("building")} ${esc(c.unidade || "—")}</span>
-      <span>${icon("map")} ${esc(c.municipio || "—")}</span>
-      <span>${icon("clock")} ${esc(c.turno || "—")}</span>
-    </p>
-    <dl class="nums">
-      <div><dt>Vagas</dt><dd>${nf0.format(c.vagas)}</dd></div>
-      <div><dt>Nota p/ garantir</dt><dd>${fmt1(c.notaEstimada)}</dd></div>
-      <div><dt>Média na 3ª</dt><dd class="need" data-need></dd></div>
-    </dl>
-    <div class="card-bottom">
-      <button class="badge" type="button" data-badge></button>
-      <div class="prox"><span>Quão perto</span><span class="prox-bar"><i data-prox></i></span><span class="mono" data-proxv></span></div>
-    </div>`;
+    <div class="c-num vagas" data-label="Vagas">${nf0.format(c.vagas)}</div>
+    <div class="c-num nota" data-label="Nota estimada">${fmt1(c.notaEstimada)}</div>
+    <div class="c-num need" data-label="Média na 3ª" data-need></div>
+    <div class="c-chance">
+      <button class="chance" type="button" data-badge><i></i><span data-label></span></button>
+      <span class="gap"><span class="gap-bar"><i data-prox></i></span><span class="gap-text mono" data-gap></span></span>
+    </div>
+    <div class="c-pin"><button class="pin" type="button" data-pin aria-pressed="false" aria-label="Adicionar ${esc(c.curso)} (${esc(c.instituicao)}) ao comparador">${icon("pin")}</button></div>`;
   el.addEventListener("animationend", () => el.classList.remove("enter"), { once: true });
   return el;
 }
-function updateCard(el, i) {
+function updateRow(el, i) {
   const k = chanceOf[i];
-  const ch = CHANCE_BY_KEY[k];
   const badge = el.querySelector("[data-badge]");
   if (el.dataset.chance !== k) {
     if (el.dataset.chance) { badge.classList.remove("pop"); void badge.offsetWidth; badge.classList.add("pop"); }
     el.dataset.chance = k;
-    badge.innerHTML = `${icon(ch.icon)} ${ch.label}`;
+    badge.querySelector("[data-label]").textContent = CHANCE_BY_KEY[k].label;
   }
-  const n = need[i];
-  el.querySelector("[data-need]").textContent = n > 100 ? ">100" : fmt1(n);
-  const p = proximity(i);
-  el.querySelector("[data-prox]").style.width = p + "%";
-  el.querySelector("[data-proxv]").textContent = Math.round(p) + "%";
-  const pin = el.querySelector("[data-pin]");
-  pin.setAttribute("aria-pressed", String(state.pins.includes(i)));
-  badge.setAttribute("aria-label", k === "boa" ? "Boa chance — comemorar" : `${ch.label}: ver quanto falta`);
+  el.querySelector("[data-need]").textContent = need[i] > 100 ? ">100" : fmt1(need[i]);
+  el.querySelector("[data-prox]").style.width = proximity(i) + "%";
+  el.querySelector("[data-gap]").textContent = gapText(i);
+  el.querySelector("[data-pin]").setAttribute("aria-pressed", String(state.pins.includes(i)));
+  badge.setAttribute("aria-label", `${CHANCE_BY_KEY[k].label}, ${gapText(i)}`);
 }
 function getNode(i) {
   let el = nodeCache.get(i);
-  if (!el) { el = createCard(i); nodeCache.set(i, el); }
-  updateCard(el, i);
+  if (!el) { el = createRow(i); nodeCache.set(i, el); }
+  updateRow(el, i);
   return el;
 }
 
@@ -337,7 +329,7 @@ let lastList = [];
 function renderGrid(reset) {
   const sameOrder = !reset && list.length === lastList.length && list.every((v, j) => v === lastList[j]);
   if (sameOrder) {
-    for (let j = 0; j < rendered; j++) updateCard(grid.children[j], list[j]);
+    for (let j = 0; j < rendered; j++) updateRow(grid.children[j], list[j]);
   } else {
     rendered = Math.min(list.length, reset ? CONFIG.PAGE_SIZE : Math.max(rendered, CONFIG.PAGE_SIZE));
     grid.replaceChildren(...list.slice(0, rendered).map(getNode));
@@ -355,75 +347,47 @@ function renderMore() {
   rendered = next;
 }
 
-/* ---------- 3D hover ---------- */
-function setupTilt() {
-  if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-  let active = null, raf = 0, ev = null;
-  grid.addEventListener("pointermove", (e) => {
-    if (reduceMotion()) return;
-    ev = e;
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0;
-      const card = ev.target.closest(".card");
-      if (active && active !== card) { active.style.removeProperty("--rx"); active.style.removeProperty("--ry"); }
-      active = card;
-      if (!card) return;
-      const r = card.getBoundingClientRect();
-      const x = (ev.clientX - r.left) / r.width - 0.5, y = (ev.clientY - r.top) / r.height - 0.5;
-      card.style.setProperty("--ry", (x * 7).toFixed(2) + "deg");
-      card.style.setProperty("--rx", (-y * 7).toFixed(2) + "deg");
-    });
-  });
-  grid.addEventListener("pointerleave", () => {
-    if (active) { active.style.removeProperty("--rx"); active.style.removeProperty("--ry"); active = null; }
-  });
-}
-
 /* ---------- comparador ---------- */
 function togglePin(i) {
   const at = state.pins.indexOf(i);
   if (at >= 0) state.pins.splice(at, 1);
   else {
-    if (state.pins.length >= CONFIG.MAX_PINS) { toast(`Você pode comparar até ${CONFIG.MAX_PINS} cursos. Remova um para adicionar outro.`); return; }
+    if (state.pins.length >= CONFIG.MAX_PINS) { toast(`Dá para comparar até ${CONFIG.MAX_PINS} cursos. Remova um para adicionar outro.`); return; }
     state.pins.push(i);
   }
-  const el = nodeCache.get(i); if (el) updateCard(el, i);
+  const el = nodeCache.get(i); if (el) updateRow(el, i);
   renderCompare();
   persist();
 }
 function renderCompare() {
-  const sec = $("#compare");
   state.pins = state.pins.filter((i) => CURSOS[i]);
-  sec.hidden = state.pins.length === 0;
-  $("#compareGrid").innerHTML = state.pins.map((i) => {
-    const c = CURSOS[i], k = chanceOf[i], ch = CHANCE_BY_KEY[k];
-    return `<article class="cmp glass" data-chance="${k}">
-      <div class="cmp-head"><span class="inst inst-${esc(c.instituicao)}">${esc(c.instituicao)}</span>
-        <button class="pin" type="button" data-unpin="${i}" aria-pressed="true" aria-label="Remover ${esc(c.curso)} do comparador">${icon("x")}</button></div>
-      <h3>${esc(c.curso)}</h3>
-      <p class="meta"><span>${icon("map")} ${esc(c.municipio)}</span><span>${icon("clock")} ${esc(c.turno)}</span></p>
-      <dl>
-        <dt>Ranking</dt><dd>#${c.ranking}</dd>
-        <dt>Vagas</dt><dd>${nf0.format(c.vagas)}</dd>
-        <dt>Nota p/ garantir</dt><dd>${fmt1(c.notaEstimada)}</dd>
-        <dt>Média na 3ª</dt><dd style="color:var(--cc)">${need[i] > 100 ? ">100" : fmt1(need[i])}</dd>
-        <dt>Quão perto</dt><dd>${Math.round(proximity(i))}%</dd>
-      </dl>
-      <span class="badge" style="--cc:var(--c-${k})">${icon(ch.icon)} ${ch.label}</span>
-    </article>`;
-  }).join("");
+  $("#compare").hidden = state.pins.length === 0;
+  if (!state.pins.length) return;
+  $("#pinCount").textContent = `${state.pins.length} de ${CONFIG.MAX_PINS}`;
+  const P = state.pins.map((i) => ({ i, c: CURSOS[i], k: chanceOf[i] }));
+  const row = (label, cell, cls = "") => `<tr><th scope="row">${label}</th>${P.map((p) => `<td class="${cls}">${cell(p)}</td>`).join("")}</tr>`;
+  $("#compareTable").innerHTML =
+    `<thead><tr><th scope="col"><span class="sr-only">Critério</span></th>${P.map(({ i, c }) => `<th scope="col"><div class="cmp-h">
+      <span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span>${esc(c.curso)}
+      <button class="link-btn x" type="button" data-unpin="${i}" aria-label="Remover ${esc(c.curso)} do comparador">Remover</button></div></th>`).join("")}</tr></thead><tbody>` +
+    row("Local", ({ c }) => `${esc(c.unidade)}<br><span style="color:var(--ink-2)">${esc(c.municipio)}</span>`) +
+    row("Turno", ({ c }) => esc(c.turno)) +
+    row("Vagas", ({ c }) => nf0.format(c.vagas), "n") +
+    row("Nota estimada", ({ c }) => fmt1(c.notaEstimada), "n") +
+    row("Média na 3ª", ({ i, k }) => `<span style="color:var(--c-${k});font-weight:600">${need[i] > 100 ? ">100" : fmt1(need[i])}</span>`, "n") +
+    row("Sua chance", ({ i, k }) => `<span style="color:var(--c-${k});font-weight:600">${CHANCE_BY_KEY[k].label}</span><br><span class="mono" style="font-size:12px;color:var(--ink-3)">${gapText(i)}</span>`) +
+    "</tbody>";
 }
 
-/* ---------- reverso: quanto preciso? ---------- */
+/* ---------- quanto preciso? ---------- */
 function setupReverse() {
   const input = $("#revInput"), listEl = $("#revList");
   let matches = [], active = -1;
-  const close = () => { listEl.hidden = true; input.setAttribute("aria-expanded", "false"); active = -1; };
+  const close = () => { listEl.hidden = true; input.setAttribute("aria-expanded", "false"); input.removeAttribute("aria-activedescendant"); active = -1; };
   const paint = () => {
     listEl.innerHTML = matches.map((i, j) => {
       const c = CURSOS[i];
-      return `<li role="option" id="rev-opt-${j}" data-i="${i}" aria-selected="${j === active}"><span class="inst inst-${esc(c.instituicao)}">${esc(c.instituicao)}</span><span class="t">${esc(c.curso)}</span><small>${esc(c.municipio)}</small></li>`;
+      return `<li role="option" id="rev-opt-${j}" data-i="${i}" aria-selected="${j === active}"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span><span class="t">${esc(c.curso)}</span><small>${esc(c.municipio)}</small></li>`;
     }).join("");
     if (active >= 0) input.setAttribute("aria-activedescendant", "rev-opt-" + active); else input.removeAttribute("aria-activedescendant");
   };
@@ -439,7 +403,7 @@ function setupReverse() {
     listEl.hidden = !matches.length;
     input.setAttribute("aria-expanded", String(!!matches.length));
   }, 120);
-  const choose = (i) => { state.revId = i; input.value = `${CURSOS[i].curso} — ${CURSOS[i].instituicao}`; close(); renderReverse(); persist(); };
+  const choose = (i) => { state.revId = i; input.value = `${CURSOS[i].curso} (${CURSOS[i].instituicao})`; close(); renderReverse(); persist(); };
   input.addEventListener("input", search);
   input.addEventListener("keydown", (e) => {
     if (listEl.hidden) return;
@@ -450,41 +414,39 @@ function setupReverse() {
   });
   listEl.addEventListener("mousedown", (e) => { const li = e.target.closest("li"); if (li) { e.preventDefault(); choose(Number(li.dataset.i)); } });
   input.addEventListener("blur", () => setTimeout(close, 100));
-  if (state.revId != null && CURSOS[state.revId]) input.value = `${CURSOS[state.revId].curso} — ${CURSOS[state.revId].instituicao}`;
+  if (state.revId != null && CURSOS[state.revId]) input.value = `${CURSOS[state.revId].curso} (${CURSOS[state.revId].instituicao})`;
 }
 function renderReverse() {
   const out = $("#revOut");
   const i = state.revId;
   if (i == null || !CURSOS[i]) { out.innerHTML = ""; return; }
-  const c = CURSOS[i], n = need[i], k = chanceOf[i], ch = CHANCE_BY_KEY[k];
-  const minAcertos = ["USP", "UNESP", "UNICAMP"].includes(c.instituicao)
-    ? `<p>Lembre: ${esc(c.instituicao)} exige no mínimo <b>22 acertos</b> na prova da 3ª série.</p>` : "";
+  const c = CURSOS[i], n = need[i], k = chanceOf[i];
   let msg;
-  if (n > 100) msg = `Mesmo com 100 na 3ª série + redação, sua nota máxima (<b>${fmt1(calc.max)}</b>) fica abaixo da nota estimada de <b>${fmt1(c.notaEstimada)}</b>.`;
-  else if (n <= state.n3) msg = `Sua estimativa atual (<b>${nf0.format(state.n3)}</b>) já cobre a média necessária. Mantenha o ritmo!`;
+  if (n > 100) msg = `Mesmo com 100 na 3ª série + redação, sua nota máxima (<b>${fmt1(calc.max)}</b>) fica abaixo da nota estimada (<b>${fmt1(c.notaEstimada)}</b>).`;
+  else if (n <= state.n3) msg = `Sua estimativa atual (<b>${nf0.format(state.n3)}</b>) já alcança essa média.`;
   else msg = `Faltam <b>${fmt1(n - state.n3)} pontos</b> em relação à sua estimativa atual (<b>${nf0.format(state.n3)}</b>).`;
-  out.innerHTML = `<div class="rev-result" data-chance="${k}">
-    <p>Para <b>${esc(c.curso)}</b> · ${esc(c.instituicao)} · ${esc(c.municipio)} (nota p/ garantir ${fmt1(c.notaEstimada)}), você precisa de média</p>
-    <span class="rev-big">${n > 100 ? ">100" : fmt1(n)}</span>
-    <p>na 3ª série + redação. ${msg}</p>
-    <span class="badge" style="--cc:var(--c-${k})">${icon(ch.icon)} ${ch.label}</span>
-    ${minAcertos}
+  const min22 = ["USP", "UNESP", "UNICAMP"].includes(c.instituicao)
+    ? `<p class="full">${esc(c.instituicao)} também exige no mínimo <b>22 acertos</b> na prova da 3ª série.</p>` : "";
+  out.innerHTML = `<div class="rev" data-chance="${k}">
+    <span class="rev-big num">${n > 100 ? ">100" : fmt1(n)}</span>
+    <p>média mínima na 3ª série + redação para <b>${esc(c.curso)}</b>, ${esc(c.instituicao)} · ${esc(c.municipio)} (nota estimada ${fmt1(c.notaEstimada)})</p>
+    <p><b style="color:var(--cc)">${CHANCE_BY_KEY[k].label}.</b> ${msg}</p>
+    ${min22}
   </div>`;
 }
 
 /* ---------- filtros UI ---------- */
 function setupFilters() {
   const chips = $("#instChips");
-  chips.innerHTML = `<button class="chip chip-all" type="button" data-inst="" aria-pressed="false">Todas</button>` +
-    INSTITUICOES.map((n) => `<button class="chip" type="button" data-inst="${n}" aria-pressed="false" style="--sw:var(${INST_COLORS[n][0]});--sw-fg:var(${INST_COLORS[n][1]})"><span class="sw"></span>${n}</button>`).join("");
+  chips.innerHTML = `<button type="button" data-inst="" aria-pressed="false">Todas</button>` +
+    INSTITUICOES.map((n) => `<button type="button" data-inst="${n}" aria-pressed="false" style="--sq:var(--${n.toLowerCase()})"><span class="sq"></span>${n}</button>`).join("");
   chips.addEventListener("click", (e) => {
-    const b = e.target.closest(".chip"); if (!b) return;
+    const b = e.target.closest("button"); if (!b) return;
     state.inst = b.dataset.inst === state.inst ? "" : b.dataset.inst;
     update({ reset: true });
   });
   const fChance = $("#fChance");
   fChance.insertAdjacentHTML("beforeend", CHANCES.map((c) => `<option value="${c.key}">${c.label}</option>`).join(""));
-  fChance.value = state.chance;
   fChance.addEventListener("change", () => { state.chance = fChance.value; if (state.chance === "boa") celebrate(fChance); update({ reset: true }); });
   const fTurno = $("#fTurno");
   fTurno.insertAdjacentHTML("beforeend", TURNOS.map((t) => `<option value="${t}">${t}</option>`).join(""));
@@ -501,31 +463,28 @@ function setupFilters() {
   }, 160));
 
   grid.addEventListener("click", (e) => {
-    const card = e.target.closest(".card"); if (!card) return;
-    const i = Number(card.dataset.id);
+    const row = e.target.closest(".row"); if (!row) return;
+    const i = Number(row.dataset.id);
     if (e.target.closest("[data-pin]")) togglePin(i);
     else if (e.target.closest("[data-badge]")) {
       if (chanceOf[i] === "boa") celebrate(e.target.closest("[data-badge]"));
       else if (chanceOf[i] === "fora") toast(`Mesmo com 100 na 3ª + redação, sua nota máxima é ${fmt1(calc.max)}. Este curso pede ${fmt1(CURSOS[i].notaEstimada)}.`);
-      else toast(`Faltam ${fmt1(need[i] - state.n3)} pontos na sua média da 3ª série + redação para ${CURSOS[i].curso}.`);
+      else toast(`Faltam ${fmt1(need[i] - state.n3)} pontos na média da 3ª série + redação para ${CURSOS[i].curso}.`);
     }
   });
-  $("#compareGrid").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
+  $("#compareTable").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
   $("#btnClearPins").addEventListener("click", () => {
     const old = state.pins.slice(); state.pins = [];
-    old.forEach((i) => { const el = nodeCache.get(i); if (el) updateCard(el, i); });
+    old.forEach((i) => { const el = nodeCache.get(i); if (el) updateRow(el, i); });
     renderCompare(); persist();
   });
 
-  const sentinel = $("#sentinel");
   if ("IntersectionObserver" in window) {
-    new IntersectionObserver((ents) => { if (ents.some((x) => x.isIntersecting)) renderMore(); }, { rootMargin: "800px 0px" }).observe(sentinel);
-  } else {
-    rendered = Infinity;
+    new IntersectionObserver((ents) => { if (ents.some((x) => x.isIntersecting)) renderMore(); }, { rootMargin: "900px 0px" }).observe($("#sentinel"));
   }
 }
 function syncFilterUI() {
-  document.querySelectorAll("#instChips .chip").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.inst === state.inst)));
+  document.querySelectorAll("#instChips button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.inst === state.inst)));
   $("#fChance").value = state.chance;
 }
 
@@ -542,7 +501,7 @@ function update(opts = {}) {
   renderCompare();
   renderReverse();
   $("#countLabel").textContent = `${nf0.format(list.length)} de ${nf0.format(CURSOS.length)}`;
-  announce(`${list.length} cursos encontrados`);
+  announce(`${list.length} cursos na lista`);
   persist();
 }
 const announce = debounce((t) => { $("#liveCount").textContent = t; }, 600);
@@ -558,9 +517,7 @@ function celebrate(fromEl) {
   confettiP.then(() => {
     const r = fromEl ? fromEl.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
     const origin = { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 2) / innerHeight };
-    const colors = ["#6366f1", "#a855f7", "#ec4899", "#4ade80", "#facc15"];
-    window.confetti({ particleCount: 110, spread: 75, startVelocity: 42, origin, colors, disableForReducedMotion: true });
-    setTimeout(() => window.confetti({ particleCount: 60, spread: 120, startVelocity: 30, origin, colors, scalar: 0.8, disableForReducedMotion: true }), 180);
+    window.confetti({ particleCount: 90, spread: 70, startVelocity: 38, origin, colors: ["#1d3fd1", "#7d95ff", "#4cc27a", "#e0b23e", "#ffffff"], disableForReducedMotion: true });
   }).catch(() => toast("Boa chance! 🎉"));
 }
 
@@ -580,7 +537,7 @@ function setupTheme() {
     const dark = document.documentElement.getAttribute("data-theme") !== "light";
     btn.innerHTML = icon(dark ? "sun" : "moon");
     btn.setAttribute("aria-label", dark ? "Ativar tema claro" : "Ativar tema escuro");
-    document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#0a0a0f" : "#f6f6fb");
+    document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#0e1014" : "#f3f4f6");
   };
   btn.addEventListener("click", () => {
     const next = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
@@ -591,7 +548,7 @@ function setupTheme() {
   paint();
 }
 
-/* ---------- compartilhar (card de imagem via canvas) ---------- */
+/* ---------- compartilhar: boletim em imagem (canvas) ---------- */
 function topBoaChance(n = 3) {
   const idx = [];
   for (let i = 0; i < CURSOS.length; i++) if (chanceOf[i] === "boa") idx.push(i);
@@ -601,65 +558,97 @@ function topBoaChance(n = 3) {
 function shareText() {
   const counts = { boa: 0, possivel: 0 };
   chanceOf.forEach((k) => { if (k in counts) counts[k]++; });
-  return `Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100 🎯\n` +
-    `${counts.boa} cursos com boa chance e ${counts.possivel} possíveis.\nSimule a sua: https://${CONFIG.SITE_URL}`;
+  return `Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100.\n` +
+    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nSimule a sua: https://${CONFIG.SITE_URL}`;
 }
-function roundRect(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 function fitText(ctx, text, maxW) {
   if (ctx.measureText(text).width <= maxW) return text;
   let t = text; while (t.length > 1 && ctx.measureText(t + "…").width > maxW) t = t.slice(0, -1);
   return t + "…";
 }
 async function drawShareCard() {
-  try { await document.fonts.ready; } catch (e) { /* ok */ }
+  try {
+    await Promise.all(['800 condensed 100px "Archivo"', '800 100px "Archivo"', '600 20px "IBM Plex Mono"', '500 20px "IBM Plex Mono"', '600 20px "IBM Plex Sans"', '400 20px "IBM Plex Sans"'].map((f) => document.fonts.load(f)));
+  } catch (e) { /* usa fontes de fallback */ }
   const W = 1080, H = 1350, cv = document.createElement("canvas");
   cv.width = W; cv.height = H;
   const ctx = cv.getContext("2d");
-  const F = '"Geist", "Inter", system-ui, sans-serif', M = '"Geist Mono", ui-monospace, monospace';
-  ctx.fillStyle = "#0a0a0f"; ctx.fillRect(0, 0, W, H);
-  [[200, 220, 520, "rgba(99,102,241,.45)"], [880, 300, 480, "rgba(168,85,247,.38)"], [900, 1180, 520, "rgba(236,72,153,.28)"]].forEach(([x, y, r, c]) => {
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c); g.addColorStop(1, "rgba(10,10,15,0)");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  });
-  const grad = ctx.createLinearGradient(80, 0, W - 80, 0);
-  grad.addColorStop(0, "#6366f1"); grad.addColorStop(0.5, "#a855f7"); grad.addColorStop(1, "#ec4899");
+  const D = '"Archivo", "Arial Narrow", Arial, sans-serif', S = '"IBM Plex Sans", Arial, sans-serif', M = '"IBM Plex Mono", ui-monospace, monospace';
+  const C = { paper: "#f3f4f6", sheet: "#ffffff", ink: "#14171c", ink2: "#4a515c", ink3: "#646b77", rule: "#dfe2e7", pen: "#1d3fd1",
+    boa: "#1f9d55", possivel: "#c99400", dificil: "#d9661f", muito: "#c62828", fora: "#8a909c" };
+  const INST = { USP: "#e0ac00", UNESP: "#1e9e53", UNICAMP: "#c62828", FATEC: "#1f5fbf", UNIVESP: "#6d3fc0" };
+  const X = 96, R = W - 96, CW = R - X;
+  const line = (y, color = C.rule, w = 2) => { ctx.fillStyle = color; ctx.fillRect(X, y, CW, w); };
 
-  ctx.fillStyle = "#a1a1b5"; ctx.font = `600 30px ${F}`; ctx.fillText("PROVÃO PAULISTA SERIADO 2026", 80, 120);
-  ctx.fillStyle = "#ededf3"; ctx.font = `700 54px ${F}`; ctx.fillText("Minha nota final projetada", 80, 200);
-  ctx.fillStyle = grad; ctx.font = `700 260px ${M}`; ctx.fillText(fmt1(calc.final), 70, 450);
-  ctx.fillStyle = "#6e6e85"; ctx.font = `500 34px ${M}`; ctx.fillText(`/100  ·  máx. possível ${fmt1(calc.max)}`, 84, 530);
+  ctx.fillStyle = C.paper; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = C.sheet; ctx.fillRect(48, 48, W - 96, H - 96);
+  ctx.strokeStyle = C.rule; ctx.lineWidth = 2; ctx.strokeRect(48, 48, W - 96, H - 96);
 
-  // barra
-  roundRect(ctx, 80, 568, W - 160, 26, 13); ctx.fillStyle = "rgba(255,255,255,.08)"; ctx.fill();
-  roundRect(ctx, 80, 568, Math.max(26, (W - 160) * calc.final / 100), 26, 13); ctx.fillStyle = grad; ctx.fill();
+  // cabeçalho
+  ctx.strokeStyle = C.pen; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(X + 16, 128, 16, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = C.pen; ctx.beginPath(); ctx.arc(X + 16, 128, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = C.ink; ctx.font = `700 30px ${D}`; ctx.fillText("Simulador Provão Paulista 2026", X + 50, 139);
+  ctx.fillStyle = C.ink3; ctx.font = `500 22px ${M}`; ctx.textAlign = "right"; ctx.fillText("BOLETIM", R, 137); ctx.textAlign = "left";
+  line(180);
 
-  // contagens
+  // nota
+  ctx.fillStyle = C.ink2; ctx.font = `600 24px ${M}`; ctx.fillText("NOTA FINAL PROJETADA", X, 240);
+  ctx.fillStyle = C.ink; ctx.font = `800 condensed 240px ${D}`; ctx.fillText(fmt1(calc.final), X - 6, 430);
+  const wNum = ctx.measureText(fmt1(calc.final)).width;
+  ctx.fillStyle = C.ink3; ctx.font = `500 30px ${M}`; ctx.fillText("/100", X + wNum + 8, 430);
+  ctx.fillStyle = C.ink2; ctx.font = `400 24px ${M}`;
+  ctx.fillText(`1ª série ${fmt1(calc.nota1)} · 2ª série ${fmt1(calc.nota2)} · 3ª + redação ${nf0.format(state.n3)}`, X, 508);
+
+  // escala 0–100
+  const sy = 568, sh = 22;
+  ctx.fillStyle = C.paper; ctx.fillRect(X, sy, CW, sh);
+  ctx.save(); ctx.beginPath(); ctx.rect(X, sy, CW * calc.max / 100, sh); ctx.clip();
+  ctx.strokeStyle = "rgba(29,63,209,.25)"; ctx.lineWidth = 4;
+  for (let x = X - sh; x < X + CW; x += 12) { ctx.beginPath(); ctx.moveTo(x, sy + sh); ctx.lineTo(x + sh, sy); ctx.stroke(); }
+  ctx.restore();
+  ctx.fillStyle = C.pen; ctx.fillRect(X, sy, CW * calc.final / 100, sh);
+  ctx.strokeStyle = "#c3c8d0"; ctx.lineWidth = 2; ctx.strokeRect(X, sy, CW, sh);
+  ctx.fillStyle = C.ink; ctx.fillRect(X + CW * calc.max / 100 - 2, sy - 10, 4, sh + 20);
+  ctx.fillStyle = C.ink3; ctx.font = `400 20px ${M}`;
+  [0, 20, 40, 60, 80, 100].forEach((t) => { ctx.textAlign = t === 0 ? "left" : t === 100 ? "right" : "center"; ctx.fillText(String(t), X + CW * t / 100, sy + sh + 32); });
+  ctx.textAlign = "left";
+  ctx.fillStyle = C.ink2; ctx.font = `500 20px ${M}`; ctx.fillText(`máx. possível ${fmt1(calc.max)}`, X, sy - 18);
+  line(650);
+
+  // distribuição
   const counts = {}; CHANCES.forEach((c) => (counts[c.key] = 0)); chanceOf.forEach((k) => counts[k]++);
-  const cols = { boa: "#4ade80", possivel: "#facc15", dificil: "#fb923c", muito: "#f87171", fora: "#fb7185" };
-  const show = ["boa", "possivel", "dificil"];
-  const bw = (W - 160 - 40) / 3;
-  show.forEach((k, j) => {
-    const x = 80 + j * (bw + 20), y = 640;
-    roundRect(ctx, x, y, bw, 170, 24); ctx.fillStyle = "rgba(255,255,255,.05)"; ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,.10)"; ctx.lineWidth = 2; ctx.stroke();
-    ctx.fillStyle = cols[k]; ctx.font = `600 30px ${F}`; ctx.fillText(CHANCE_BY_KEY[k].label, x + 28, y + 56);
-    ctx.fillStyle = "#ededf3"; ctx.font = `700 76px ${M}`; ctx.fillText(nf0.format(counts[k]), x + 28, y + 140);
+  const total = CURSOS.length;
+  ctx.fillStyle = C.ink2; ctx.font = `600 24px ${M}`; ctx.fillText(`CHANCES EM ${nf0.format(total)} CURSOS`, X, 702);
+  let bx = X; const by = 724, bh = 20, gap = 4;
+  const keys = CHANCES.map((c) => c.key).filter((k) => counts[k]);
+  const usable = CW - gap * (keys.length - 1);
+  keys.forEach((k) => { const w = usable * counts[k] / total; ctx.fillStyle = C[k]; ctx.fillRect(bx, by, w, bh); bx += w + gap; });
+  const cols = ["boa", "possivel", "dificil", "muito"], colW = CW / cols.length;
+  cols.forEach((k, j) => {
+    const x = X + j * colW;
+    ctx.fillStyle = C[k]; ctx.beginPath(); ctx.arc(x + 8, 784, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C.ink2; ctx.font = `400 22px ${S}`; ctx.fillText(CHANCE_BY_KEY[k].label, x + 26, 792);
+    ctx.fillStyle = C.ink; ctx.font = `800 60px ${D}`; ctx.fillText(nf0.format(counts[k]), x, 858);
   });
+  line(892);
 
-  ctx.fillStyle = "#a1a1b5"; ctx.font = `600 28px ${F}`; ctx.fillText("CURSOS MAIS CONCORRIDOS COM BOA CHANCE", 80, 872);
+  // cursos
+  ctx.fillStyle = C.ink2; ctx.font = `600 24px ${M}`; ctx.fillText("MAIS CONCORRIDOS COM BOA CHANCE", X, 944);
   const tops = topBoaChance(3);
-  if (!tops.length) { ctx.fillStyle = "#ededf3"; ctx.font = `500 36px ${F}`; ctx.fillText("Bora estudar pra 3ª série! 💪", 80, 930); }
+  if (!tops.length) { ctx.fillStyle = C.ink; ctx.font = `600 32px ${S}`; ctx.fillText("Ainda nenhum. Bora estudar para a 3ª série!", X, 1010); }
   tops.forEach((i, j) => {
-    const c = CURSOS[i], y = 900 + j * 94;
-    roundRect(ctx, 80, y, W - 160, 84, 18); ctx.fillStyle = "rgba(255,255,255,.05)"; ctx.fill();
-    const instCol = { USP: "#facc15", UNESP: "#22c55e", UNICAMP: "#dc2626", FATEC: "#2563eb", UNIVESP: "#7c3aed" }[c.instituicao] || "#a855f7";
-    roundRect(ctx, 100, y + 22, 150, 40, 8); ctx.fillStyle = instCol; ctx.fill();
-    ctx.fillStyle = ["USP", "UNESP"].includes(c.instituicao) ? "#111" : "#fff"; ctx.font = `700 24px ${F}`; ctx.textAlign = "center"; ctx.fillText(c.instituicao, 175, y + 51); ctx.textAlign = "left";
-    ctx.fillStyle = "#ededf3"; ctx.font = `600 32px ${F}`; ctx.fillText(fitText(ctx, c.curso, W - 160 - 220), 275, y + 54);
+    const c = CURSOS[i], y = 960 + j * 64;
+    ctx.fillStyle = INST[c.instituicao] || C.pen; ctx.fillRect(X, y + 24, 16, 16);
+    ctx.fillStyle = C.ink2; ctx.font = `600 20px ${M}`; ctx.fillText(c.instituicao, X + 28, y + 40);
+    ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.textAlign = "right"; ctx.fillText(fitText(ctx, c.municipio, 230), R, y + 41); ctx.textAlign = "left";
+    ctx.fillStyle = C.ink; ctx.font = `600 30px ${S}`; ctx.fillText(fitText(ctx, c.curso, CW - 170 - 250), X + 150, y + 42);
+    if (j < tops.length - 1) { ctx.fillStyle = C.rule; ctx.fillRect(X, y + 60, CW, 1); }
   });
 
-  ctx.fillStyle = "#a1a1b5"; ctx.font = `500 26px ${F}`; ctx.fillText("Simule a sua nota em", 80, H - 112);
-  ctx.fillStyle = grad; ctx.font = `700 34px ${F}`; ctx.fillText(fitText(ctx, CONFIG.SITE_URL, W - 160), 80, H - 66);
+  // rodapé
+  line(H - 150);
+  ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Simule a sua nota em", X, H - 108);
+  ctx.fillStyle = C.pen; ctx.font = `600 28px ${M}`; ctx.fillText(fitText(ctx, CONFIG.SITE_URL, CW), X, H - 70);
   return cv;
 }
 function setupShare() {
@@ -675,7 +664,7 @@ function setupShare() {
     $("#shareDownload").href = url;
     blob = await new Promise((r) => cv.toBlob(r, "image/png"));
     modal.hidden = false;
-    modal.querySelector("[data-close].icon-btn").focus();
+    modal.querySelector(".btn-icon[data-close]").focus();
   });
   modal.addEventListener("click", (e) => { if (e.target.closest("[data-close]")) close(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) close(); });
@@ -693,7 +682,7 @@ function setupShare() {
   });
   $("#shareCopy").addEventListener("click", () => {
     const text = shareText();
-    navigator.clipboard.writeText(text).then(() => toast("Texto copiado!"), () => toast(text));
+    navigator.clipboard.writeText(text).then(() => toast("Texto copiado."), () => toast(text));
   });
 }
 
@@ -708,7 +697,6 @@ async function boot() {
   setupStats();
   setupFilters();
   setupShare();
-  setupTilt();
   update();
   try {
     const res = await fetch(CONFIG.DATA_URL);
