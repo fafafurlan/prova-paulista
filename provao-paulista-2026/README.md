@@ -92,3 +92,12 @@ python3 scripts/build_escolas.py      # baixa os dados e regrava escolas.json
 ## Personalização e privacidade
 
 Nome e escola informados pelo aluno ficam só no `localStorage` do navegador (`pp26-profile`). Nada é enviado a servidores. O próprio aluno pode editar ou apagar esses dados no botão do topo.
+
+## Cache e versões dos arquivos
+
+O `index.html` carrega `style.css?v=…` e `app.js?v=…`. Sempre que alterar um desses arquivos, troque o valor de `v` (por exemplo, pelos 8 primeiros caracteres de `cat style.css app.js | sha1sum`). Assim o navegador de quem já visitou o site baixa a versão nova na hora, em vez de misturar HTML novo com CSS/JS antigos.
+
+```bash
+V=$(cat style.css app.js | sha1sum | cut -c1-8)
+sed -i -E "s/(style\.css|app\.js)\?v=[a-z0-9]+/\1?v=$V/g" index.html
+```
