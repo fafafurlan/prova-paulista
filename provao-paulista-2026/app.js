@@ -59,6 +59,11 @@ const ICONS = {
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/>',
   whats: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/>',
+  more: '<circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/><circle cx="5" cy="12" r="1.5"/>',
+  nota: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+  lista: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  trofeu: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
   copy: '<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
 };
 const icon = (name) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -377,6 +382,7 @@ function setupStats() {
     const k = b.dataset.chance;
     state.chance = state.chance === k ? "" : k;
     if (k === "boa" && state.chance === "boa") celebrate(b);
+    if (state.chance) showTab("cursos");
     update({ reset: true });
   });
 }
@@ -413,21 +419,29 @@ function createRow(i) {
   const el = document.createElement("article");
   el.className = "row enter";
   el.dataset.id = i;
-  const meta = [c.unidade, c.municipio, c.turno, AREAS_CURTO[c.area]].filter(Boolean).map(esc).join(" · ");
+  const detalhes = [c.unidade, c.turno, `Área: ${AREAS[c.area] || "—"}`].filter(Boolean).map(esc).join(" · ");
   el.innerHTML = `
-    <div class="c-course">
-      <div class="c-tags"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span><span class="rank mono">#${c.ranking}</span></div>
-      <h3>${esc(c.curso)}</h3>
-      <p class="meta">${meta}</p>
+    <div class="row-main" role="button" tabindex="0" aria-expanded="false" aria-controls="det-curso-${i}">
+      <div class="c-course">
+        <div class="c-tags"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span><span class="meta-city">${esc(c.municipio || "")}</span></div>
+        <h3>${esc(c.curso)}</h3>
+      </div>
+      <div class="c-chance">
+        <span class="chance" data-badge><i></i><span data-label></span></span>
+        <span class="gap"><span class="gap-bar"><i data-prox></i></span><span class="gap-text mono" data-gap></span></span>
+      </div>
+      <span class="chev" aria-hidden="true"></span>
     </div>
-    <div class="c-num vagas" data-label="Vagas">${nf0.format(c.vagas)}</div>
-    <div class="c-num nota" data-label="Nota estimada">${fmt1(c.notaEstimada)}</div>
-    <div class="c-num need" data-label="Média na 3ª" data-need></div>
-    <div class="c-chance">
-      <button class="chance" type="button" data-badge><i></i><span data-label></span></button>
-      <span class="gap"><span class="gap-bar"><i data-prox></i></span><span class="gap-text mono" data-gap></span></span>
-    </div>
-    <div class="c-pin"><button class="pin" type="button" data-pin aria-pressed="false" aria-label="Adicionar ${esc(c.curso)} (${esc(c.instituicao)}) ao comparador">${icon("pin")}</button></div>`;
+    <div class="row-details" id="det-curso-${i}" hidden>
+      <dl class="row-nums">
+        <div><dt>Vagas</dt><dd>${nf0.format(c.vagas)}</dd></div>
+        <div><dt>Nota estimada</dt><dd>${fmt1(c.notaEstimada)}</dd></div>
+        <div><dt>Média na 3ª</dt><dd class="need" data-need></dd></div>
+        <div><dt>Ranking</dt><dd>#${c.ranking}</dd></div>
+      </dl>
+      <p class="meta">${detalhes}</p>
+      <button class="btn btn-sm pin" type="button" data-pin aria-pressed="false">${icon("pin")}<span data-pinlabel>Comparar</span></button>
+    </div>`;
   el.addEventListener("animationend", () => el.classList.remove("enter"), { once: true });
   return el;
 }
@@ -442,8 +456,17 @@ function updateRow(el, i) {
   el.querySelector("[data-need]").textContent = need[i] > 100 ? ">100" : fmt1(need[i]);
   el.querySelector("[data-prox]").style.width = proximity(i) + "%";
   el.querySelector("[data-gap]").textContent = gapText(i);
-  el.querySelector("[data-pin]").setAttribute("aria-pressed", String(state.pins.includes(i)));
-  badge.setAttribute("aria-label", `${CHANCE_BY_KEY[k].label}, ${gapText(i)}`);
+  const pinned = state.pins.includes(i);
+  const pin = el.querySelector("[data-pin]");
+  pin.setAttribute("aria-pressed", String(pinned));
+  pin.querySelector("[data-pinlabel]").textContent = pinned ? "No comparador" : "Comparar";
+  el.querySelector(".row-main").setAttribute("aria-label", `${CURSOS[i].curso}, ${CURSOS[i].instituicao}, ${CURSOS[i].municipio}: ${CHANCE_BY_KEY[k].label}, ${gapText(i)}. Toque para ver detalhes.`);
+}
+function toggleRow(el) {
+  const open = !el.classList.contains("open");
+  el.classList.toggle("open", open);
+  el.querySelector(".row-main").setAttribute("aria-expanded", String(open));
+  el.querySelector(".row-details").hidden = !open;
 }
 function getNode(i) {
   let el = nodeCache.get(i);
@@ -595,12 +618,11 @@ function setupFilters() {
     const row = e.target.closest(".row"); if (!row) return;
     const i = Number(row.dataset.id);
     if (e.target.closest("[data-pin]")) togglePin(i);
-    else if (e.target.closest("[data-badge]")) {
-      if (chanceOf[i] === "boa") celebrate(e.target.closest("[data-badge]"));
-      else if (chanceOf[i] === "fora") toast(`Mesmo com 100 na 3ª + redação, sua nota máxima é ${fmt1(calc.max)}. Este curso pede ${fmt1(CURSOS[i].notaEstimada)}.`);
-      else if (elimOf[i]) toast(`Eliminado neste curso: ${elimOf[i]}.`);
-      else toast(`Faltam ${fmt1(need[i] - ownOf(i))} pontos na média da 3ª série + redação para ${CURSOS[i].curso}.`);
-    }
+    else if (e.target.closest(".row-main")) toggleRow(row);
+  });
+  grid.addEventListener("keydown", (e) => {
+    const main = e.target.closest(".row-main");
+    if (main && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleRow(main.closest(".row")); }
   });
   $("#compareTable").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
   $("#btnClearFilters").addEventListener("click", clearFilters);
@@ -696,7 +718,7 @@ function setupTheme() {
   const btn = $("#btnTheme");
   const paint = () => {
     const dark = document.documentElement.getAttribute("data-theme") !== "light";
-    btn.innerHTML = icon(dark ? "sun" : "moon");
+    btn.innerHTML = `${icon(dark ? "sun" : "moon")}<span>${dark ? "Tema claro" : "Tema escuro"}</span>`;
     btn.setAttribute("aria-label", dark ? "Ativar tema claro" : "Ativar tema escuro");
     document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#0e1014" : "#f3f4f6");
   };
@@ -731,7 +753,7 @@ function renderProfile() {
   $("#idEscola").textContent = escolaLabel() || "—";
   $("#btnEditId").textContent = profile ? "Editar" : "Adicionar nome";
   $("#profileAvatar").textContent = profile ? initials(profile.nome) : "+";
-  $("#profileLabel").textContent = profile ? firstName() : "Personalizar";
+  $("#profileLabel").textContent = profile ? `Perfil: ${firstName()}` : "Adicionar nome e escola";
   $("#btnProfile").setAttribute("aria-label", profile ? `Editar nome e escola (${profile.nome})` : "Adicionar nome e escola");
   $("#shareIdWrap").hidden = !profile;
 }
@@ -1117,6 +1139,65 @@ function setupShare() {
   });
 }
 
+/* ---------- abas e menu ---------- */
+const TABS = ["nota", "cursos", "ranking", "como"];
+const TAB_ALIAS = { resultados: "cursos", "como-funciona": "como", topo: "nota" };
+function tabFromHash() {
+  const h = decodeURIComponent(location.hash.replace("#", ""));
+  return TABS.includes(h) ? h : TAB_ALIAS[h] || null;
+}
+function showTab(name, { scroll = true } = {}) {
+  if (!TABS.includes(name)) name = "nota";
+  document.querySelectorAll(".tab-panel").forEach((p) => { p.hidden = p.dataset.panel !== name; });
+  document.querySelectorAll("[data-tab]").forEach((t) => {
+    const on = t.dataset.tab === name;
+    t.setAttribute("aria-selected", String(on));
+    t.tabIndex = on ? 0 : -1;
+  });
+  if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
+  if (scroll) window.scrollTo({ top: 0, behavior: "instant" });
+}
+function setupTabs() {
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-tab], [data-goto]");
+    if (!t) return;
+    e.preventDefault();
+    showTab(t.dataset.tab || t.dataset.goto);
+  });
+  $(".tabs").addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+    const tabs = [...document.querySelectorAll("[data-tab]")];
+    const i = tabs.indexOf(document.activeElement); if (i < 0) return;
+    const next = tabs[(i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+    showTab(next.dataset.tab); next.focus();
+  });
+  window.addEventListener("hashchange", () => { const t = tabFromHash(); if (t) showTab(t); });
+  showTab(tabFromHash() || "nota", { scroll: false });
+  // Filtros extras abertos no computador, recolhidos no celular.
+  $("#moreFilters").open = window.matchMedia("(min-width: 760px)").matches;
+}
+function setupMenu() {
+  const btn = $("#btnMenu"), menu = $("#menu");
+  const close = (focus) => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); if (focus) btn.focus(); };
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = menu.hidden;
+    menu.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) { const first = menu.querySelector(".menu-item:not([hidden])"); if (first) first.focus(); }
+  });
+  menu.addEventListener("click", (e) => { if (e.target.closest(".menu-item")) close(false); });
+  document.addEventListener("click", (e) => { if (!menu.hidden && !e.target.closest("#menu")) close(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !menu.hidden) close(true); });
+  menu.addEventListener("keydown", (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    e.preventDefault();
+    const items = [...menu.querySelectorAll(".menu-item:not([hidden])")];
+    const i = items.indexOf(document.activeElement);
+    items[(i + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length].focus();
+  });
+}
+
 /* ---------- app instalável (PWA) ---------- */
 function setupPWA() {
   if ("serviceWorker" in navigator && location.protocol === "https:") {
@@ -1145,6 +1226,8 @@ function hydrateIcons() {
 }
 async function boot() {
   hydrateIcons();
+  setupTabs();
+  setupMenu();
   setupPWA();
   setupTheme();
   setupInputs();

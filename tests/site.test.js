@@ -33,6 +33,7 @@ async function abrir({ estado, perfil, largura = 1366, caminho = "/" } = {}) {
   return { page, ctx, erros };
 }
 const legenda = (page) => page.$$eval(".leg", (ls) => Object.fromEntries(ls.map((l) => [l.dataset.chance, Number(l.querySelector("[data-num]").textContent.replace(/\D/g, ""))])));
+const aba = (page, nome) => page.click(`[data-tab="${nome}"]`);
 const esperar = (page) => page.waitForTimeout(700); // count-up e debounce dos filtros
 const setDet = (page, k, v) => page.$eval(`#det-${k}`, (el, v) => { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }, v);
 
@@ -71,6 +72,7 @@ test("converte acertos salvos na escala antiga de 60 questões", async () => {
 
 test("filtros, busca e limpar filtros", async () => {
   const { page, ctx } = await abrir();
+  await aba(page, "cursos");
   await page.click('#instChips button[data-inst="USP"]');
   assert.match(await page.textContent("#countLabel"), /^173 de/);
   await page.fill("#q", "medicina");
@@ -101,12 +103,14 @@ test("modo por área: pesos, mínimo de 22 acertos e redação mínima", async (
   for (const [k, v] of [["ling", 5], ["mat", 4], ["hum", 6], ["nat", 5]]) await setDet(page, k, v);
   await esperar(page);
   assert.match(await page.textContent("#detAlert"), /22 acertos/);
+  await aba(page, "cursos");
   await page.fill("#q", "direito");
   await page.waitForTimeout(400);
   const direito = await page.$$eval("#grid .row", (rs) => rs.filter((r) => r.textContent.includes("Direito")).map((r) => [r.querySelector(".inst").textContent, r.dataset.chance, r.querySelector("[data-gap]").textContent]));
   assert.ok(direito.length > 0);
   for (const [inst, chance, gap] of direito) if (["USP", "UNESP", "UNICAMP"].includes(inst)) { assert.equal(chance, "fora"); assert.match(gap, /22 acertos/); }
   await page.fill("#q", "");
+  await aba(page, "nota");
   await setDet(page, "red", 10);
   await esperar(page);
   const leg = await legenda(page);
@@ -118,6 +122,7 @@ test("modo por área: pesos, mínimo de 22 acertos e redação mínima", async (
 test("ranking: entrar, aparecer como Ana S. e sair", async () => {
   const perfil = { nome: "Ana Beatriz Souza", escola: "E.E. Deputado Rubens Paiva", cidade: "Praia Grande" };
   const { page, ctx, erros } = await abrir({ perfil });
+  await aba(page, "ranking");
   await page.waitForSelector("#rankJoin");
   await page.click("#rankJoin");
   await page.waitForSelector(".rank-list li.me");
@@ -133,6 +138,7 @@ test("ranking: entrar, aparecer como Ana S. e sair", async () => {
 
 test("compartilhar: imagem e link do WhatsApp", async () => {
   const { page, ctx } = await abrir();
+  await page.click("#btnMenu");
   await page.click("#btnShare");
   await page.waitForSelector("#shareModal:not([hidden])");
   assert.match(await page.getAttribute("#shareImg", "src"), /^data:image\/png;base64,/);
@@ -159,4 +165,45 @@ test("página de privacidade e manifest do app", async () => {
   const m = await (await fetch(`${srv.url}/manifest.webmanifest`)).json();
   assert.equal(m.display, "standalone");
   for (const i of m.icons) assert.equal((await fetch(`${srv.url}/${i.src}`)).status, 200, i.src);
+});
+
+test("abas: navegação, link direto e faixa de chance leva à lista filtrada", async () => {
+  const { page, ctx, erros } = await abrir({ caminho: "/#ranking" });
+  assert.equal(await page.isVisible("#secao-ranking"), true);
+  assert.equal(await page.isVisible("#painel-nota"), false);
+  await aba(page, "nota");
+  await esperar(page);
+  await page.click('.leg[data-chance="possivel"]');
+  assert.equal(await page.isVisible("#painel-cursos"), true);
+  assert.match(await page.textContent("#activeList"), /Possível/);
+  assert.equal(new URL(page.url()).hash, "#cursos");
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("lista compacta: tocar no curso mostra os detalhes", async () => {
+  const { page, ctx } = await abrir();
+  await aba(page, "cursos");
+  const linha = page.locator("#grid .row").first();
+  assert.equal(await linha.locator(".row-details").isVisible(), false);
+  await linha.locator(".row-main").click();
+  assert.equal(await linha.locator(".row-details").isVisible(), true);
+  assert.match(await linha.locator(".row-details").textContent(), /Vagas.*Nota estimada.*Média na 3ª/s);
+  await linha.locator("[data-pin]").click();
+  assert.equal(await page.isVisible("#compare"), true);
+  await ctx.close();
+});
+
+test("menu do topo abre, troca o tema e fecha com Esc", async () => {
+  const { page, ctx } = await abrir();
+  await page.click("#btnMenu");
+  assert.equal(await page.isVisible("#menu"), true);
+  const antes = await page.getAttribute("html", "data-theme");
+  await page.click("#btnTheme");
+  assert.notEqual(await page.getAttribute("html", "data-theme"), antes);
+  assert.equal(await page.isVisible("#menu"), false);
+  await page.click("#btnMenu");
+  await page.keyboard.press("Escape");
+  assert.equal(await page.isVisible("#menu"), false);
+  await ctx.close();
 });
