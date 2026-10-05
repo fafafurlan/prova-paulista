@@ -189,8 +189,23 @@ test("lista compacta: tocar no curso mostra os detalhes", async () => {
   await linha.locator(".row-main").click();
   assert.equal(await linha.locator(".row-details").isVisible(), true);
   assert.match(await linha.locator(".row-details").textContent(), /Vagas.*Nota estimada.*Média na 3ª/s);
+  assert.equal(await page.isVisible("#cmpBar"), false);
   await linha.locator("[data-pin]").click();
-  assert.equal(await page.isVisible("#compare"), true);
+  assert.equal(await page.isVisible("#cmpBar"), true);
+  assert.match(await page.textContent("#cmpBar"), /Comparar\s*1\s*curso/);
+  const curso = await linha.locator("h3").textContent();
+  await page.click("#cmpBar");
+  assert.equal(await page.isVisible("#compareModal"), true);
+  assert.ok((await page.textContent("#compareTable")).includes(curso));
+  await page.keyboard.press("Escape");
+  assert.equal(await page.isVisible("#compareModal"), false);
+  await aba(page, "nota");
+  assert.equal(await page.isVisible("#cmpBar"), false);
+  await aba(page, "cursos");
+  await page.click("#cmpBar");
+  await page.click("#compareTable [data-unpin]");
+  assert.equal(await page.isVisible("#compareModal"), false);
+  assert.equal(await page.isVisible("#cmpBar"), false);
   await ctx.close();
 });
 
@@ -271,5 +286,26 @@ test("sitemap: todas as páginas existem, com título e link canônico próprios
 test("celular: página de curso sem rolagem horizontal", async () => {
   const { page, ctx } = await abrir({ largura: 390, caminho: "/cursos/eixo-de-computacao" });
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390));
+  await ctx.close();
+});
+
+test("celular: comparador em cartões, acima das abas", async () => {
+  const { page, ctx, erros } = await abrir({ largura: 390 });
+  await aba(page, "cursos");
+  for (const n of [0, 1]) {
+    const linha = page.locator("#grid .row").nth(n);
+    await linha.locator(".row-main").click();
+    await linha.locator("[data-pin]").click();
+  }
+  const bar = await page.locator("#cmpBar").boundingBox();
+  const tabs = await page.locator(".tabs").boundingBox();
+  assert.ok(bar.y + bar.height <= tabs.y, "barra do comparador fica acima das abas");
+  await page.click("#cmpBar");
+  assert.equal(await page.locator("#compareCards .cmp-c").count(), 2);
+  assert.equal(await page.isVisible("#compareTable"), false);
+  await page.locator("#compareCards [data-unpin]").first().click();
+  assert.equal(await page.locator("#compareCards .cmp-c").count(), 1);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390));
+  assert.deepEqual(erros, []);
   await ctx.close();
 });

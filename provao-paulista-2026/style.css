@@ -260,7 +260,6 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
 button:disabled { opacity: .6; cursor: progress; }
 
 /* Compare */
-.compare { display: flex; flex-direction: column; gap: 12px; }
 .compare-scroll { overflow-x: auto; }
 .compare-table { width: 100%; border-collapse: collapse; min-width: 520px; font-size: 14px; }
 .compare-table th, .compare-table td { padding: 10px 14px; border-bottom: 1px solid var(--rule); text-align: left; vertical-align: top; }
@@ -544,4 +543,40 @@ h2 .pg-sub, li .pg-sub { display: inline; margin-left: 4px; font-family: var(--f
   .pg-table th:nth-child(3), .pg-table td:nth-child(3) { display: none; }
   .pg-kpis div + div { padding-left: 12px; }
   .pg-body .brand-name { display: none; }
+}
+
+/* Comparador: barra fixa (aba Cursos) que abre o comparador por cima da tela */
+.cmp-bar { position: fixed; z-index: 70; right: 24px; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 48px; padding: 0 18px; border: 0; border-radius: 999px; background: var(--pen); color: var(--pen-ink); font: 600 15px var(--f-body); cursor: pointer; box-shadow: 0 12px 30px -10px rgba(0,0,0,.55); }
+.cmp-bar:hover { filter: brightness(1.08); }
+.cmp-bar .num { font-size: 18px; }
+.cmp-bar-sub { font-weight: 500; }
+body:not([data-aba-atual="cursos"]) .cmp-bar { display: none; }
+.cmp-card { width: min(100%, 880px); }
+.cmp-head-actions { display: flex; align-items: center; gap: 8px; }
+.cmp-card .compare-scroll { border: 1px solid var(--rule); border-radius: var(--r); }
+@media (max-width: 759px) {
+  .cmp-bar { left: 16px; right: 16px; bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  body.has-pins[data-aba-atual="cursos"] main { padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+  body.has-pins[data-aba-atual="cursos"] .toast { bottom: calc(132px + env(safe-area-inset-bottom, 0px)); }
+  .cmp-card { max-height: calc(100vh - 32px); }
+}
+@media (min-width: 760px) {
+  body.has-pins[data-aba-atual="cursos"] .toast { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); }
+}
+.cmp-cards { display: none; }
+@media (max-width: 600px) {
+  .cmp-card .compare-scroll { display: none; }
+  .cmp-cards { display: flex; flex-direction: column; gap: 10px; }
+  .cmp-c { position: relative; padding: 12px 14px 12px 16px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--sheet-2); overflow: hidden; }
+  .cmp-c::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--cc); }
+  .cmp-c-head { display: flex; align-items: center; justify-content: space-between; }
+  .cmp-c h3 { font-size: 16px; margin: 2px 0 2px; }
+  .cmp-c-local { margin: 0; font-size: 13px; color: var(--ink-3); }
+  .cmp-c-chance { margin: 8px 0 0; font-size: 14px; color: var(--cc); }
+  .cmp-c-chance .mono { font-size: 12px; color: var(--ink-3); margin-left: 6px; }
+  .cmp-c dl { margin: 10px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .cmp-c dt { font-size: 11px; color: var(--ink-3); }
+  .cmp-c dd { margin: 0; font: 600 15px var(--f-mono); }
+  .cmp-c .need { color: var(--cc); }
 }

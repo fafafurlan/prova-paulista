@@ -510,6 +510,7 @@ function togglePin(i) {
   else {
     if (state.pins.length >= CONFIG.MAX_PINS) { toast(`Dá para comparar até ${CONFIG.MAX_PINS} cursos. Remova um para adicionar outro.`); return; }
     state.pins.push(i);
+    toast(state.pins.length === 1 ? "Adicionado ao comparador. Marque outro curso para comparar." : "Adicionado ao comparador.");
   }
   const el = nodeCache.get(i); if (el) updateRow(el, i);
   renderCompare();
@@ -517,9 +518,13 @@ function togglePin(i) {
 }
 function renderCompare() {
   state.pins = state.pins.filter((i) => CURSOS[i]);
-  $("#compare").hidden = state.pins.length === 0;
-  if (!state.pins.length) return;
-  $("#pinCount").textContent = `${state.pins.length} de ${CONFIG.MAX_PINS}`;
+  const n = state.pins.length;
+  $("#cmpBar").hidden = n === 0;
+  document.body.classList.toggle("has-pins", n > 0);
+  $("#cmpBarCount").textContent = String(n);
+  $("#cmpBarSub").textContent = n === 1 ? "curso" : "cursos";
+  if (!n) { closeCompare(); return; }
+  $("#pinCount").textContent = `${n} de ${CONFIG.MAX_PINS}`;
   const P = state.pins.map((i) => ({ i, c: CURSOS[i], k: chanceOf[i] }));
   const row = (label, cell, cls = "") => `<tr><th scope="row">${label}</th>${P.map((p) => `<td class="${cls}">${cell(p)}</td>`).join("")}</tr>`;
   $("#compareTable").innerHTML =
@@ -533,6 +538,37 @@ function renderCompare() {
     row("Média na 3ª", ({ i, k }) => `<span style="color:var(--c-${k});font-weight:600">${need[i] > 100 ? ">100" : fmt1(need[i])}</span>`, "n") +
     row("Sua chance", ({ i, k }) => `<span style="color:var(--c-${k});font-weight:600">${CHANCE_BY_KEY[k].label}</span><br><span class="mono" style="font-size:12px;color:var(--ink-3)">${gapText(i)}</span>`) +
     "</tbody>";
+  // No celular, um cartão por curso (a tabela lado a lado não cabe).
+  $("#compareCards").innerHTML = P.map(({ i, c, k }) => `<article class="cmp-c" style="--cc:var(--c-${k})">
+    <div class="cmp-c-head"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span>
+      <button class="link-btn" type="button" data-unpin="${i}" aria-label="Remover ${esc(c.curso)} do comparador">Remover</button></div>
+    <h3>${esc(c.curso)}</h3>
+    <p class="cmp-c-local">${esc(c.unidade)} · ${esc(c.municipio)} · ${esc(c.turno)}</p>
+    <p class="cmp-c-chance"><b>${CHANCE_BY_KEY[k].label}</b> <span class="mono">${gapText(i)}</span></p>
+    <dl><div><dt>Vagas</dt><dd>${nf0.format(c.vagas)}</dd></div><div><dt>Nota estimada</dt><dd>${fmt1(c.notaEstimada)}</dd></div>
+      <div><dt>Média na 3ª</dt><dd class="need">${need[i] > 100 ? ">100" : fmt1(need[i])}</dd></div></dl>
+  </article>`).join("");
+}
+
+let closeCompare = () => {};
+function setupCompare() {
+  const modal = $("#compareModal"), bar = $("#cmpBar");
+  closeCompare = () => {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    if (!bar.hidden) bar.focus();
+  };
+  bar.addEventListener("click", () => {
+    $("#toast").hidden = true;
+    renderCompare();
+    modal.hidden = false;
+    modal.querySelector(".btn-icon[data-close]").focus();
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-close]")) closeCompare();
+    const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin));
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeCompare(); });
 }
 
 /* ---------- quanto preciso? ---------- */
@@ -629,7 +665,6 @@ function setupFilters() {
     const main = e.target.closest(".row-main");
     if (main && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleRow(main.closest(".row")); }
   });
-  $("#compareTable").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
   $("#btnClearFilters").addEventListener("click", clearFilters);
   $("#btnClearFilters2").addEventListener("click", clearFilters);
   $("#btnClearPins").addEventListener("click", () => {
@@ -1174,6 +1209,7 @@ function showTab(name, { scroll = true } = {}) {
     t.setAttribute("aria-selected", String(on));
     t.tabIndex = on ? 0 : -1;
   });
+  document.body.dataset.abaAtual = name; // não usar data-tab no body: o clique das abas procura [data-tab]
   if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
   if (scroll) window.scrollTo({ top: 0, behavior: "instant" });
 }
@@ -1254,6 +1290,7 @@ async function boot() {
   setupDetalhe();
   setupStats();
   setupFilters();
+  setupCompare();
   filtroDoLink();
   setupShare();
   setupProfile();

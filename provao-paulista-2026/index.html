@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=9beef345">
+<link rel="stylesheet" href="style.css?v=f1152898">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -249,16 +249,6 @@
     <div id="sentinel" class="sentinel" aria-hidden="true"></div>
   </section>
 
-  <section class="wrap compare" id="compare" hidden aria-labelledby="compareTitle">
-    <div class="section-head">
-      <h2 id="compareTitle">Comparador <span class="count mono" id="pinCount"></span></h2>
-      <button class="link-btn" id="btnClearPins" type="button">Limpar</button>
-    </div>
-    <div class="sheet compare-scroll">
-      <table class="compare-table" id="compareTable"></table>
-    </div>
-  </section>
-
   <section class="wrap" aria-labelledby="reverseTitle">
     <details class="sheet reverse-d" id="reverseBox">
       <summary><span id="reverseTitle">Quanto preciso tirar na 3ª série?</span><small>Escolha um curso e veja a média mínima</small></summary>
@@ -356,6 +346,29 @@
   </div>
 </footer>
 
+<button class="cmp-bar" id="cmpBar" type="button" hidden aria-haspopup="dialog" aria-controls="compareModal">
+  <span class="cmp-bar-label">Comparar <b class="num" id="cmpBarCount">0</b> <span class="cmp-bar-sub" id="cmpBarSub"></span></span>
+  <span aria-hidden="true">→</span>
+</button>
+
+<div class="modal" id="compareModal" hidden role="dialog" aria-modal="true" aria-labelledby="compareTitle">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card cmp-card">
+    <div class="section-head">
+      <h2 id="compareTitle">Comparador <span class="count mono" id="pinCount"></span></h2>
+      <div class="cmp-head-actions">
+        <button class="link-btn" id="btnClearPins" type="button">Limpar tudo</button>
+        <button class="btn btn-icon" type="button" data-close aria-label="Fechar" data-icon="x"></button>
+      </div>
+    </div>
+    <div class="compare-scroll">
+      <table class="compare-table" id="compareTable"></table>
+    </div>
+    <div class="cmp-cards" id="compareCards"></div>
+    <p class="modal-hint">Para adicionar outro curso, toque em um curso da lista e depois em “Comparar”.</p>
+  </div>
+</div>
+
 <div class="modal" id="shareModal" hidden role="dialog" aria-modal="true" aria-labelledby="shareTitle">
   <div class="modal-backdrop" data-close></div>
   <div class="modal-card">
@@ -404,7 +417,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="bloqueio.js?v=9beef345" defer></script>
-<script src="app.js?v=9beef345" defer></script>
+<script src="bloqueio.js?v=f1152898" defer></script>
+<script src="app.js?v=f1152898" defer></script>
 </body>
 </html>
