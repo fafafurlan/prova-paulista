@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=3f4ea96d">
+<link rel="stylesheet" href="style.css?v=a32e40f5">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -38,35 +38,47 @@
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-<a class="skip" href="#resultados">Pular para a lista de cursos</a>
+<a class="skip" href="#cursos">Pular para a lista de cursos</a>
 
 <header class="topbar">
   <div class="topbar-inner wrap">
-    <a class="brand" href="#topo" aria-label="Simulador Provão Paulista 2026, início">
+    <a class="brand" href="#nota" data-goto="nota" aria-label="Simulador Provão Paulista 2026, início">
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="brand-name">Simulador Provão Paulista</span>
       <span class="brand-year mono">2026</span>
     </a>
-    <div class="topbar-score" aria-hidden="true">
+    <a class="topbar-score" href="#nota" data-goto="nota" aria-label="Ver minha nota">
       <span class="tb-label">Nota projetada</span>
       <span class="tb-value num" id="tsNota">0,0</span>
       <span class="tb-max mono">máx <span id="tsMax">0,0</span></span>
-    </div>
+    </a>
     <div class="topbar-actions">
-      <button class="btn btn-ghost profile-btn" id="btnProfile" type="button" aria-label="Editar nome e escola"><span class="avatar" id="profileAvatar" aria-hidden="true"></span><span class="btn-text" id="profileLabel">Personalizar</span></button>
-      <button class="btn btn-ghost" id="btnInstall" type="button" data-icon="download" hidden><span class="btn-text">Instalar app</span></button>
-      <button class="btn btn-ghost" id="btnShare" type="button" data-icon="share"><span class="btn-text">Compartilhar</span></button>
-      <button class="btn btn-icon" id="btnTheme" type="button" aria-label="Alternar tema"></button>
+      <button class="btn btn-icon" id="btnMenu" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="menu" aria-label="Menu" data-icon="more"></button>
+      <div class="menu" id="menu" role="menu" hidden>
+        <button class="menu-item profile-btn" id="btnProfile" type="button" role="menuitem"><span class="avatar" id="profileAvatar" aria-hidden="true"></span><span id="profileLabel">Personalizar</span></button>
+        <button class="menu-item" id="btnShare" type="button" role="menuitem" data-icon="share"><span>Compartilhar resultado</span></button>
+        <button class="menu-item" id="btnInstall" type="button" role="menuitem" data-icon="download" hidden><span>Instalar app</span></button>
+        <button class="menu-item" id="btnTheme" type="button" role="menuitem"></button>
+      </div>
     </div>
   </div>
 </header>
 
+<nav class="tabs" role="tablist" aria-label="Seções do simulador">
+  <div class="tabs-inner wrap">
+    <a class="tab" id="tab-nota" href="#nota" role="tab" data-tab="nota" aria-controls="painel-nota" aria-selected="true" data-icon="nota"><span>Minha nota</span></a>
+    <a class="tab" id="tab-cursos" href="#cursos" role="tab" data-tab="cursos" aria-controls="painel-cursos" aria-selected="false" data-icon="lista"><span>Cursos</span></a>
+    <a class="tab" id="tab-ranking" href="#ranking" role="tab" data-tab="ranking" aria-controls="painel-ranking" aria-selected="false" data-icon="trofeu"><span>Ranking</span></a>
+    <a class="tab" id="tab-como" href="#como" role="tab" data-tab="como" aria-controls="painel-como" aria-selected="false" data-icon="info"><span>Como funciona</span></a>
+  </div>
+</nav>
+
 <main id="topo">
+<div class="tab-panel" id="painel-nota" data-panel="nota" role="tabpanel" aria-labelledby="tab-nota">
   <section class="intro wrap">
-    <p class="kicker mono">Provão Paulista Seriado 2026 · Fórmula do Anexo V, Quadro II</p>
     <p class="hello" id="hello" hidden></p>
-    <h1>Veja sua nota final e suas chances, curso a curso.</h1>
-    <p class="lede">Informe os acertos do Provão I e II e uma estimativa para a 3ª série + redação. O simulador calcula a nota final projetada e compara com a nota estimada de <b id="heroTotal">1.805</b> cursos da USP, Unesp, Unicamp, Fatec e Univesp.</p>
+    <h1>Simule sua nota e veja suas chances</h1>
+    <p class="lede"><b id="heroTotal">1.805</b> cursos da USP, Unesp, Unicamp, Fatec e Univesp · fórmula do edital do Seriado 2026</p>
   </section>
 
   <section class="wrap" aria-labelledby="boletimTitle">
@@ -150,7 +162,10 @@
           <h3 class="result-label">Nota final projetada</h3>
           <div class="area-pick" id="areaPick" hidden role="group" aria-label="Área do curso para a nota em destaque"></div>
           <p class="result-big"><span class="num" id="notaFinal">0,0</span><small class="mono">/100</small></p>
-          <p class="result-formula mono" id="scoreFormula"></p>
+          <details class="calc">
+            <summary>Ver cálculo</summary>
+            <p class="result-formula mono" id="scoreFormula"></p>
+          </details>
           <div class="scale" role="img" id="scoreBarImg" aria-label="">
             <div class="scale-track">
               <div class="scale-max" id="sbMax"></div>
@@ -172,50 +187,14 @@
   <section class="wrap dist" aria-labelledby="distTitle">
     <div class="dist-head">
       <h2 id="distTitle">Suas chances em <span id="distTotal">1.805</span> cursos</h2>
-      <p class="dist-hint">Toque numa faixa para filtrar a lista.</p>
+      <p class="dist-hint">Toque numa faixa para ver os cursos.</p>
     </div>
     <div class="dist-bar" id="distBar" aria-hidden="true"></div>
     <div class="dist-legend" id="stats" role="group" aria-label="Filtrar por chance"></div>
   </section>
+</div>
 
-  <section class="wrap" id="ranking" aria-labelledby="rankTitle">
-    <div class="sheet ranking">
-      <div class="sheet-head">
-        <h2 id="rankTitle">Ranking da escola</h2>
-        <span class="sheet-tag rank-school" id="rankSchool"></span>
-      </div>
-      <div class="rank-body" id="rankBody" aria-live="polite"></div>
-    </div>
-  </section>
-
-  <section class="wrap compare" id="compare" hidden aria-labelledby="compareTitle">
-    <div class="section-head">
-      <h2 id="compareTitle">Comparador <span class="count mono" id="pinCount"></span></h2>
-      <button class="link-btn" id="btnClearPins" type="button">Limpar</button>
-    </div>
-    <div class="sheet compare-scroll">
-      <table class="compare-table" id="compareTable"></table>
-    </div>
-  </section>
-
-  <section class="wrap" aria-labelledby="reverseTitle">
-    <div class="sheet reverse">
-      <div class="reverse-text">
-        <h2 id="reverseTitle">Quanto preciso tirar na 3ª série?</h2>
-        <p>Escolha um curso. Com seus acertos do Provão I e II, calculamos a média mínima na 3ª série + redação para alcançar a nota estimada.</p>
-      </div>
-      <div class="reverse-box">
-        <div class="combo" id="combo">
-          <label for="revInput" class="sr-only">Buscar curso</label>
-          <span class="combo-ico" data-icon="search" aria-hidden="true"></span>
-          <input id="revInput" type="text" autocomplete="off" placeholder="Ex.: Medicina USP, Engenharia Unicamp" role="combobox" aria-expanded="false" aria-controls="revList" aria-autocomplete="list">
-          <ul id="revList" class="combo-list" role="listbox" hidden></ul>
-        </div>
-        <div class="reverse-out" id="revOut" aria-live="polite"></div>
-      </div>
-    </div>
-  </section>
-
+<div class="tab-panel" id="painel-cursos" data-panel="cursos" role="tabpanel" aria-labelledby="tab-cursos" hidden>
   <section class="wrap results" id="resultados" aria-labelledby="cursosTitle">
     <div class="section-head">
       <h2 id="cursosTitle">Cursos</h2>
@@ -228,6 +207,8 @@
         <input id="q" type="search" placeholder="Buscar curso, unidade ou cidade" autocomplete="off">
       </div>
       <div class="seg" role="group" aria-label="Instituição" id="instChips"></div>
+      <details class="more-filters" id="moreFilters">
+        <summary>Filtros e ordem</summary>
       <div class="selects">
         <label class="sel"><span>Chance</span>
           <select id="fChance"><option value="">Todas</option></select>
@@ -245,6 +226,7 @@
           </select>
         </label>
       </div>
+      </details>
     </div>
     <div class="active-filters" id="activeFilters" hidden>
       <span>Filtrando por <b id="activeList"></b></span>
@@ -253,7 +235,7 @@
     <p class="sr-only" id="liveCount" aria-live="polite"></p>
     <div class="sheet table">
       <div class="thead" aria-hidden="true">
-        <span>Curso</span><span class="r">Vagas</span><span class="r">Nota estimada</span><span class="r">Média na 3ª</span><span>Sua chance</span><span></span>
+        <span>Curso</span><span>Sua chance</span><span></span>
       </div>
       <div class="tbody" id="grid" aria-busy="true">
         <div class="loading">Carregando cursos…</div>
@@ -266,6 +248,48 @@
     <div id="sentinel" class="sentinel" aria-hidden="true"></div>
   </section>
 
+  <section class="wrap compare" id="compare" hidden aria-labelledby="compareTitle">
+    <div class="section-head">
+      <h2 id="compareTitle">Comparador <span class="count mono" id="pinCount"></span></h2>
+      <button class="link-btn" id="btnClearPins" type="button">Limpar</button>
+    </div>
+    <div class="sheet compare-scroll">
+      <table class="compare-table" id="compareTable"></table>
+    </div>
+  </section>
+
+  <section class="wrap" aria-labelledby="reverseTitle">
+    <details class="sheet reverse-d" id="reverseBox">
+      <summary><span id="reverseTitle">Quanto preciso tirar na 3ª série?</span><small>Escolha um curso e veja a média mínima</small></summary>
+      <div class="reverse">
+        <p class="reverse-help">Com seus acertos do Provão I e II, calculamos a média mínima na 3ª série + redação para alcançar a nota estimada do curso.</p>
+        <div class="reverse-box">
+          <div class="combo" id="combo">
+            <label for="revInput" class="sr-only">Buscar curso</label>
+            <span class="combo-ico" data-icon="search" aria-hidden="true"></span>
+            <input id="revInput" type="text" autocomplete="off" placeholder="Ex.: Medicina USP, Engenharia Unicamp" role="combobox" aria-expanded="false" aria-controls="revList" aria-autocomplete="list">
+            <ul id="revList" class="combo-list" role="listbox" hidden></ul>
+          </div>
+          <div class="reverse-out" id="revOut" aria-live="polite"></div>
+        </div>
+      </div>
+    </details>
+  </section>
+</div>
+
+<div class="tab-panel" id="painel-ranking" data-panel="ranking" role="tabpanel" aria-labelledby="tab-ranking" hidden>
+  <section class="wrap" id="secao-ranking" aria-labelledby="rankTitle">
+    <div class="sheet ranking">
+      <div class="sheet-head">
+        <h2 id="rankTitle">Ranking da escola</h2>
+        <span class="sheet-tag rank-school" id="rankSchool"></span>
+      </div>
+      <div class="rank-body" id="rankBody" aria-live="polite"></div>
+    </div>
+  </section>
+</div>
+
+<div class="tab-panel" id="painel-como" data-panel="como" role="tabpanel" aria-labelledby="tab-como" hidden>
   <section class="wrap how" id="como-funciona" aria-labelledby="howTitle">
     <h2 id="howTitle">Como o cálculo funciona</h2>
     <ol class="steps">
@@ -312,6 +336,17 @@
     </ol>
     <p class="how-note">Eliminação (modo “Por área”): USP, Unesp e Unicamp exigem no mínimo 22 acertos na prova da 3ª série (item 13.9); Fatec e Univesp não têm esse mínimo. Redação abaixo de 20% elimina em todos os cursos (item 11.2.4). O Quadro X também lista um peso para a redação por área, mas o edital não detalha como ele se combina com os 20% fixos; por isso o simulador mantém a redação em 20%. A área de cada curso foi atribuída pelo nome do curso e as notas dos cursos são estimativas: nada disso garante aprovação. Confira sempre o edital oficial.</p>
   </section>
+
+  <section class="wrap">
+    <div class="sheet priv-card">
+      <div>
+        <h2>Seus dados</h2>
+        <p>Nome, escola e notas ficam no seu aparelho. Só vão para o servidor se você entrar no ranking da escola.</p>
+      </div>
+      <a class="btn" href="privacidade">Ler a política de privacidade</a>
+    </div>
+  </section>
+</div>
 </main>
 
 <footer class="footer">
@@ -368,6 +403,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="app.js?v=3f4ea96d" defer></script>
+<script src="app.js?v=a32e40f5" defer></script>
 </body>
 </html>
