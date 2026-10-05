@@ -69,7 +69,7 @@ FONTE_HTML = (f'<span class="fonte-dot" aria-hidden="true"></span><span><b>{esca
 
 # Versão curta para a lista de cursos do simulador (a tela principal fica limpa).
 FONTE_CURTA = (f'<span class="fonte-dot" aria-hidden="true"></span><span><b>{escape(FONTE["texto"])}</b>, '
-               f'atualizadas em {escape(FONTE["atualizado"])}. <a href="cursos">Ver por curso</a></span>')
+               f'atualizadas em {escape(FONTE["atualizado"])}.</span>')
 
 ANALYTICS = """<script>window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };</script>
 <script defer src="/_vercel/insights/script.js"></script>"""

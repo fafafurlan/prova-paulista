@@ -445,10 +445,7 @@ function createRow(i) {
         <div><dt>Ranking</dt><dd>#${c.ranking}</dd></div>
       </dl>
       <p class="meta">${detalhes}</p>
-      <div class="row-actions">
-        <button class="btn btn-sm pin" type="button" data-pin aria-pressed="false">${icon("pin")}<span data-pinlabel>Comparar</span></button>
-        <a class="link-btn" href="cursos/${slugCurso(c.curso)}">Todas as opções de ${esc(cursoBase(c.curso))} →</a>
-      </div>
+      <button class="btn btn-sm pin" type="button" data-pin aria-pressed="false">${icon("pin")}<span data-pinlabel>Comparar</span></button>
     </div>`;
   el.addEventListener("animationend", () => el.classList.remove("enter"), { once: true });
   return el;

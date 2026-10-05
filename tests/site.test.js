@@ -252,18 +252,6 @@ test("página de curso: tabela e link para simular com o curso filtrado", async 
   await ctx.close();
 });
 
-test("linha da lista leva à página do curso", async () => {
-  const { page, ctx } = await abrir();
-  await aba(page, "cursos");
-  const linha = page.locator("#grid .row").first();
-  await linha.locator(".row-main").click();
-  await linha.locator(".row-actions a").click();
-  await page.waitForLoadState("networkidle");
-  assert.match(new URL(page.url()).pathname, /^\/cursos\/[a-z0-9-]+$/);
-  assert.match(await page.textContent("h1"), /no Provão Paulista 2026/);
-  await ctx.close();
-});
-
 test("sitemap: todas as páginas existem, com título e link canônico próprios", async () => {
   const xml = await (await fetch(`${srv.url}/sitemap.xml`)).text();
   const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);

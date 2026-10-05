@@ -119,6 +119,8 @@ Não precisa trocar à mão: rode o gerador (seção abaixo) depois de mudar qua
 - `universidades/<sigla>.html` (ex.: `/universidades/usp`) e `cursos/index.html` (`/cursos`);
 - `sitemap.xml` e `robots.txt`.
 
+O simulador não tem links para essas páginas (para a tela principal ficar limpa): elas existem para o Google, que as encontra pelo `sitemap.xml`, e levam o aluno de volta ao simulador.
+
 O mesmo script atualiza os `?v=` e o aviso da fonte das notas no `index.html`. Rode sempre que mudar `cursos.json`, `scripts/fonte.json`, `style.css`, `app.js` ou `bloqueio.js`, e faça commit de tudo o que ele gerar (o teste automático falha se as páginas estiverem desatualizadas):
 
 ```bash
