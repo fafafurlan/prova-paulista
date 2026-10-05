@@ -46,3 +46,13 @@ jobs:
           assert len(escolas) > 3000, "escolas.json parece incompleto"
           print(f"{len(cursos)} cursos e {len(escolas)} escolas ok")
           PY
+
+      - name: Páginas geradas e versões (?v=) em dia
+        working-directory: provao-paulista-2026
+        run: |
+          python3 scripts/build_paginas.py
+          if [ -n "$(git status --porcelain .)" ]; then
+            git status --short .
+            echo "::error::Rode python3 scripts/build_paginas.py e faça commit dos arquivos gerados."
+            exit 1
+          fi

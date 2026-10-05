@@ -9,6 +9,7 @@
  */
 "use strict";
 const crypto = require("crypto");
+const nomeBloqueado = require("../bloqueio.js");
 
 const TOTAL_QUESTOES = 90; // questões em cada prova (edital, Anexo IV)
 const TOP_N = 50;
@@ -125,6 +126,7 @@ module.exports = async function handler(req, res) {
       const nome = nomeExibido(b.nome);
       if (n1 === null || n2 === null || n3 === null) return res.status(400).json({ error: "notas_invalidas" });
       if (!nome) return res.status(400).json({ error: "nome_obrigatorio" });
+      if (nomeBloqueado(b.nome)) return res.status(400).json({ error: "nome_invalido" });
       if (!b.escola || !b.cidade || !(await escolaValida(req, b.escola, b.cidade))) return res.status(400).json({ error: "escola_invalida" });
       const sid = schoolId(b.escola, b.cidade);
       const [old] = await redis([["GET", `dev:${me}`]]);

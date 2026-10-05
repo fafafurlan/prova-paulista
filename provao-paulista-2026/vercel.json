@@ -20,7 +20,7 @@
       ]
     },
     {
-      "source": "/(app.js|style.css|cursos.json|escolas.json)",
+      "source": "/(app.js|bloqueio.js|style.css|cursos.json|escolas.json)",
       "headers": [
         {
           "key": "Cache-Control",

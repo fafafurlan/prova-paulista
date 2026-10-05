@@ -207,3 +207,81 @@ test("menu do topo abre, troca o tema e fecha com Esc", async () => {
   assert.equal(await page.isVisible("#menu"), false);
   await ctx.close();
 });
+
+test("perfil recusa nome ofensivo", async () => {
+  const { page, ctx, erros } = await abrir();
+  await page.click("#btnMenu");
+  await page.click("#btnProfile");
+  await page.fill("#pfNome", "Porra Silva");
+  await page.click("#pfSave");
+  assert.match(await page.textContent("#pfError"), /não pode ser usado/);
+  assert.equal(await page.isVisible("#welcomeModal"), true);
+  await page.fill("#pfNome", "Ana Souza");
+  await page.click("#pfSave");
+  assert.equal(await page.isVisible("#welcomeModal"), false);
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("aviso da fonte das notas aparece acima da lista", async () => {
+  const { page, ctx } = await abrir();
+  await aba(page, "cursos");
+  assert.match(await page.textContent("#fonteNotas"), /estimadas.*atualizadas em/s);
+  await ctx.close();
+});
+
+test("página de curso: tabela e link para simular com o curso filtrado", async () => {
+  const cursos = JSON.parse(fs.readFileSync(path.join(ROOT, "cursos.json"), "utf8"));
+  const medicina = cursos.filter((c) => c.curso.replace(/\s*\([^)]*\)/g, "").trim() === "Medicina");
+  const { page, ctx, erros } = await abrir({ caminho: "/cursos/medicina" });
+  assert.match(await page.title(), /^Medicina no Provão Paulista 2026/);
+  assert.equal(await page.locator(".pg-table tbody tr").count(), medicina.length);
+  assert.match(await page.textContent(".fonte"), /não oficiais/);
+  await page.click(".pg-cta a");
+  await page.waitForFunction(() => document.querySelectorAll("#grid .row").length > 0);
+  assert.equal(await page.isVisible("#painel-cursos"), true);
+  assert.equal(new URL(page.url()).search, "");
+  const nomes = await page.$$eval("#grid .row h3", (hs) => hs.map((h) => h.textContent));
+  assert.equal(nomes.length, medicina.length);
+  assert.ok(nomes.every((n) => n.replace(/\s*\([^)]*\)/g, "").trim() === "Medicina"), nomes.join(" | "));
+  assert.match(await page.textContent("#activeList"), /Medicina/);
+  await page.click("#btnClearFilters");
+  await page.waitForTimeout(300);
+  assert.match(await page.textContent("#countLabel"), /^1\.805 de/);
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("linha da lista leva à página do curso", async () => {
+  const { page, ctx } = await abrir();
+  await aba(page, "cursos");
+  const linha = page.locator("#grid .row").first();
+  await linha.locator(".row-main").click();
+  await linha.locator(".row-actions a").click();
+  await page.waitForLoadState("networkidle");
+  assert.match(new URL(page.url()).pathname, /^\/cursos\/[a-z0-9-]+$/);
+  assert.match(await page.textContent("h1"), /no Provão Paulista 2026/);
+  await ctx.close();
+});
+
+test("sitemap: todas as páginas existem, com título e link canônico próprios", async () => {
+  const xml = await (await fetch(`${srv.url}/sitemap.xml`)).text();
+  const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+  assert.ok(urls.length > 250);
+  const titulos = new Set();
+  for (const u of urls) {
+    const r = await fetch(srv.url + u);
+    assert.equal(r.status, 200, u);
+    const html = await r.text();
+    titulos.add(html.match(/<title>([^<]*)<\/title>/)[1]);
+    if (u !== "/" && u !== "/privacidade") assert.match(html, new RegExp(`<link rel="canonical" href="https://[^"]+${u}">`), u);
+  }
+  assert.equal(titulos.size, urls.length);
+  assert.match(await (await fetch(`${srv.url}/robots.txt`)).text(), /Sitemap: https:\/\/.+\/sitemap\.xml/);
+});
+
+test("celular: página de curso sem rolagem horizontal", async () => {
+  const { page, ctx } = await abrir({ largura: 390, caminho: "/cursos/eixo-de-computacao" });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390));
+  await ctx.close();
+});

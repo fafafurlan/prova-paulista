@@ -76,6 +76,9 @@ const fmt1 = (v) => nf1.format(v);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+// Mesmas regras de scripts/build_paginas.py: "Medicina (Integral)" -> "medicina" (página /cursos/medicina).
+const cursoBase = (s) => String(s).replace(/\s*\([^)]*\)/g, "").trim();
+const slugCurso = (s) => norm(cursoBase(s)).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const store = {
@@ -114,6 +117,7 @@ const state = {
   turno: "",
   sort: "ranking",
   q: "",
+  curso: "", // slug vindo de /cursos/<curso> ("Simular minha chance")
   pins: Array.isArray(saved.pins) ? saved.pins.slice(0, CONFIG.MAX_PINS) : [],
   revId: Number.isInteger(saved.revId) ? saved.revId : null,
 };
@@ -342,6 +346,7 @@ function baseFilter(i) {
   const c = CURSOS[i];
   if (state.inst && c.instituicao !== state.inst) return false;
   if (state.turno && c._turno !== state.turno) return false;
+  if (state.curso && c._slug !== state.curso) return false;
   if (qTokens.length) { for (const t of qTokens) if (!c._s.includes(t)) return false; }
   return true;
 }
@@ -440,7 +445,10 @@ function createRow(i) {
         <div><dt>Ranking</dt><dd>#${c.ranking}</dd></div>
       </dl>
       <p class="meta">${detalhes}</p>
-      <button class="btn btn-sm pin" type="button" data-pin aria-pressed="false">${icon("pin")}<span data-pinlabel>Comparar</span></button>
+      <div class="row-actions">
+        <button class="btn btn-sm pin" type="button" data-pin aria-pressed="false">${icon("pin")}<span data-pinlabel>Comparar</span></button>
+        <a class="link-btn" href="cursos/${slugCurso(c.curso)}">Todas as opções de ${esc(cursoBase(c.curso))} →</a>
+      </div>
     </div>`;
   el.addEventListener("animationend", () => el.classList.remove("enter"), { once: true });
   return el;
@@ -637,8 +645,18 @@ function setupFilters() {
     new IntersectionObserver((ents) => { if (ents.some((x) => x.isIntersecting)) renderMore(); }, { rootMargin: "900px 0px" }).observe($("#sentinel"));
   }
 }
+// As páginas de curso chegam como /?curso=medicina#cursos: filtra o curso e limpa o endereço.
+function filtroDoLink() {
+  const params = new URLSearchParams(location.search);
+  const curso = (params.get("curso") || "").toLowerCase();
+  if (!curso) return;
+  if (/^[a-z0-9-]{1,80}$/.test(curso)) state.curso = curso;
+  params.delete("curso");
+  history.replaceState(null, "", location.pathname + (params.toString() ? `?${params}` : "") + location.hash);
+}
 function activeFilters() {
   const f = [];
+  if (state.curso) { const i = CURSOS.findIndex((c) => c._slug === state.curso); f.push(i >= 0 ? cursoBase(CURSOS[i].curso) : "curso"); }
   if (state.q.trim()) f.push(`busca “${state.q.trim()}”`);
   if (state.inst) f.push(state.inst);
   if (state.chance) f.push(CHANCE_BY_KEY[state.chance].label);
@@ -646,7 +664,7 @@ function activeFilters() {
   return f;
 }
 function clearFilters() {
-  state.inst = ""; state.chance = ""; state.turno = ""; state.q = ""; qTokens = [];
+  state.inst = ""; state.chance = ""; state.turno = ""; state.q = ""; state.curso = ""; qTokens = [];
   $("#q").value = ""; $("#fTurno").value = "";
   update({ reset: true });
 }
@@ -831,7 +849,11 @@ function setupProfile() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const n = cleanText(nome.value, 40);
-    if (!n) { err.hidden = false; nome.setAttribute("aria-invalid", "true"); nome.focus(); return; }
+    const ruim = !!n && typeof window.nomeBloqueado === "function" && window.nomeBloqueado(n);
+    if (!n || ruim) {
+      err.textContent = ruim ? "Esse nome não pode ser usado. Use seu nome de verdade." : "Digite seu nome para continuar, ou toque em “Pular”.";
+      err.hidden = false; nome.setAttribute("aria-invalid", "true"); nome.focus(); return;
+    }
     profile = picked
       ? { nome: n, escola: picked.n, cidade: picked.c }
       : { nome: n, escola: cleanText(escola.value, 120), cidade: "" };
@@ -926,6 +948,7 @@ async function joinRanking() {
   } catch (e) {
     toast(e.message === "muitas_tentativas" ? "Muitas atualizações seguidas. Tente de novo em alguns minutos."
       : e.message === "escola_invalida" ? "Escolha sua escola na lista de sugestões para entrar no ranking."
+      : e.message === "nome_invalido" ? "Esse nome não pode aparecer no ranking. Edite seu perfil com seu nome de verdade."
       : "Não foi possível entrar no ranking agora. Tente de novo.");
   }
   renderRanking();
@@ -1234,6 +1257,7 @@ async function boot() {
   setupDetalhe();
   setupStats();
   setupFilters();
+  filtroDoLink();
   setupShare();
   setupProfile();
   setupRanking();
@@ -1249,6 +1273,7 @@ async function boot() {
   CURSOS.forEach((c) => {
     c._turno = turnoGrupo(c.turno);
     c._s = norm(`${c.curso} ${c.unidade} ${c.municipio} ${c.instituicao} ${c.codigo}`);
+    c._slug = slugCurso(c.curso);
   });
   need = new Float32Array(CURSOS.length);
   chanceOf = new Array(CURSOS.length);

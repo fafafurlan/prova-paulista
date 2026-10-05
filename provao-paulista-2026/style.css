@@ -495,3 +495,57 @@ details > summary::-webkit-details-marker { display: none; }
 @media (min-width: 900px) { .reverse-d .reverse { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); } }
 /* Itens do menu não herdam as regras antigas dos botões do topo */
 .menu .menu-item, .menu #btnShare, .menu .profile-btn { width: auto; height: auto; padding: 10px; justify-content: flex-start; white-space: nowrap; }
+
+/* Link da linha para a página do curso */
+.row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.row-actions .link-btn { text-decoration: none; font-size: 13px; padding: 4px 0; }
+
+/* Aviso da fonte das notas (lista de cursos e páginas de curso) */
+.fonte { display: flex; gap: 10px; align-items: flex-start; margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); padding: 10px 14px; border: 1px solid var(--rule); border-radius: var(--r); background: var(--sheet); }
+.fonte b { color: var(--ink); }
+.fonte-curta { padding: 0 2px; border: 0; background: none; font-size: 12px; color: var(--ink-3); align-items: center; }
+.fonte-curta .fonte-dot { margin-top: 0; width: 6px; height: 6px; }
+.fonte-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c-possivel); margin-top: 6px; flex: none; }
+
+/* Páginas de curso, universidade e índice (geradas por scripts/build_paginas.py) */
+.pg { display: flex; flex-direction: column; gap: 24px; padding-top: 24px; padding-bottom: 56px; }
+.pg-top-cta { margin-left: auto; align-self: center; }
+.pg-crumb { font-size: 13px; color: var(--ink-3); }
+.pg-crumb a { color: var(--ink-2); text-decoration: none; }
+.pg-crumb a:hover { color: var(--pen); }
+.pg-head h1 { font-size: clamp(28px, 5vw, 40px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; }
+.pg-lede { color: var(--ink-2); max-width: 64ch; margin: 10px 0 0; }
+.pg-kpis { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-block: 1px solid var(--rule); }
+.pg-kpis div { padding: 14px 0; min-width: 0; }
+.pg-kpis div + div { border-left: 1px solid var(--rule); padding-left: 16px; }
+.pg-kpis dt { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); }
+.pg-kpis dd { margin: 0; font-size: clamp(24px, 4vw, 30px); line-height: 1.15; }
+.pg-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; padding: 18px 20px; border: 1px solid var(--pen); border-radius: var(--r); background: var(--pen-soft); }
+.pg-cta p { margin: 0; max-width: 56ch; }
+.pg-table { overflow-x: auto; }
+.pg-table table { width: 100%; border-collapse: collapse; }
+.pg-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-3); text-align: left; font-weight: 500; padding: 10px 16px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.pg-table td { padding: 12px 16px; border-bottom: 1px solid var(--rule); vertical-align: top; overflow-wrap: anywhere; }
+.pg-table tr:last-child td { border-bottom: 0; }
+.pg-table td a { color: var(--ink); text-decoration: none; font-weight: 500; }
+.pg-table td a:hover { color: var(--pen); text-decoration: underline; }
+.pg-table .r { text-align: right; white-space: nowrap; }
+.pg-nota { font-size: 20px; }
+.pg-sub { display: block; font-size: 13px; color: var(--ink-3); font-weight: 400; }
+h2 .pg-sub, li .pg-sub { display: inline; margin-left: 4px; font-family: var(--f-mono); font-size: 12px; }
+.pg-inst { font: 600 12px var(--f-mono); border-left: 3px solid var(--ic); padding-left: 8px; white-space: nowrap; }
+.pg-rel h2, .pg-area h2 { font-size: 15px; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 10px; }
+.pg-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.pg-links a { padding: 6px 12px; border: 1px solid var(--rule-strong); border-radius: 999px; font-size: 13px; color: var(--ink-2); text-decoration: none; }
+.pg-links a:hover { border-color: var(--pen); color: var(--pen); }
+.pg-uni { margin: 12px 0 0; font-size: 13px; color: var(--ink-3); }
+.pg-lista { margin: 0; padding: 0; list-style: none; columns: 3 220px; column-gap: 24px; }
+.pg-lista li { break-inside: avoid; padding: 5px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.pg-lista a { color: var(--ink); text-decoration: none; }
+.pg-lista a:hover { color: var(--pen); }
+@media (max-width: 600px) {
+  .pg-table th, .pg-table td { padding-inline: 12px; }
+  .pg-table th:nth-child(3), .pg-table td:nth-child(3) { display: none; }
+  .pg-kpis div + div { padding-left: 12px; }
+  .pg-body .brand-name { display: none; }
+}
