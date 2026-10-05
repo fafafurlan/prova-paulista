@@ -229,6 +229,11 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
   .leg:last-child { grid-column: 1 / -1; border-bottom: 0; }
 }
 
+/* WhatsApp */
+.btn-whats { background: #1f7a4d; border-color: #1f7a4d; color: #ffffff; }
+.btn-whats:hover { background: #1a6a43; border-color: #1a6a43; }
+.rank-body > .btn-whats { align-self: flex-start; }
+
 /* Ranking */
 .rank-school { text-transform: none; letter-spacing: 0; font: 500 13px var(--f-body); color: var(--ink-2); text-align: right; overflow-wrap: anywhere; }
 .rank-body { padding: 8px 20px 18px; display: flex; flex-direction: column; gap: 14px; }

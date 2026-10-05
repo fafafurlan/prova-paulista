@@ -1,0 +1,48 @@
+name: Testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Instalar o Chromium do Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Rodar testes (API do ranking e site no navegador)
+        run: npm test
+
+      - name: Validar scripts de dados (Python)
+        working-directory: provao-paulista-2026
+        run: |
+          python3 -c "import ast,sys; [ast.parse(open(f).read(), f) for f in sys.argv[1:]]" scripts/*.py
+          python3 - <<'PY'
+          import json
+          cursos = json.load(open("cursos.json"))
+          escolas = json.load(open("escolas.json"))
+          assert len(cursos) > 1000, "cursos.json parece incompleto"
+          assert all(c.get("area") in ("humanas", "exatas", "biologicas") for c in cursos), "curso sem área"
+          assert len(escolas) > 3000, "escolas.json parece incompleto"
+          print(f"{len(cursos)} cursos e {len(escolas)} escolas ok")
+          PY

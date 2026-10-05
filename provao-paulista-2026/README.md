@@ -13,6 +13,9 @@ provao-paulista-2026/
 ├── cursos.json           # 1.805 cursos extraídos da aba "Todos os cursos"
 ├── escolas.json          # 4.060 escolas de SP com ensino médio (sugestões no campo "Escola")
 ├── og.png                # imagem de pré-visualização para redes sociais (1200×630)
+├── manifest.webmanifest  # app instalável (nome, cores, ícones)
+├── sw.js                 # service worker: funciona sem internet (menos o ranking)
+├── icons/                # ícones do app (192, 512, maskable, apple-touch)
 ├── api/ranking.js        # função da Vercel do ranking por escola (Upstash Redis)
 ├── vercel.json           # headers e cache para Vercel
 ├── netlify.toml          # alternativa para Netlify
@@ -134,3 +137,31 @@ Pesos, número de questões e mínimos ficam no `CONFIG` de `app.js` (e `TOTAL_Q
 ## Estatísticas de visita
 
 O site carrega o Vercel Web Analytics (`/_vercel/insights/script.js`), sem cookies. Para começar a coletar, ative em **Vercel → projeto → Analytics → Enable**. Enquanto não estiver ativado, o script não carrega e nada muda para o visitante.
+
+## App no celular (PWA)
+
+O site pode ser instalado na tela inicial do celular. No Android/Chrome aparece o botão **Instalar app** no topo; no iPhone, use **Compartilhar → Adicionar à Tela de Início**. O `sw.js` busca sempre a versão mais nova quando há internet e, sem internet, abre a última cópia guardada (o ranking precisa de internet). Se mudar a lista de arquivos guardados em `sw.js`, troque o nome do cache (`pp26-v1` → `pp26-v2`) no `sw.js` e no `app.js`.
+
+## WhatsApp
+
+O compartilhamento e o convite do ranking abrem o WhatsApp com o texto pronto. Os links levam `?ref=whatsapp` ou `?ref=convite`, e o app instalado abre com `?ref=app`; no Vercel Analytics dá para ver quantas visitas vieram de cada um.
+
+## Testes automáticos
+
+A pasta `tests/` (na raiz do repositório, fora do que a Vercel publica) tem testes da API do ranking e do site no navegador (Playwright). Eles rodam sozinhos no GitHub a cada PR e a cada mudança no `main` (`.github/workflows/testes.yml`).
+
+```bash
+cd tests
+npm ci
+npx playwright install chromium   # só na primeira vez
+npm test
+```
+
+O servidor de teste (`tests/server.js`) serve o site, roda `api/ranking.js` como a Vercel e simula o Redis da Upstash, então os testes não precisam de internet nem do banco real.
+
+## Domínio próprio
+
+1. Compre o domínio (ex.: em https://registro.br para `.com.br`).
+2. Na Vercel: projeto → **Settings → Domains → Add** e digite o domínio (ex.: `simuladorprovao.com.br`). Adicione também `www.` e deixe um redirecionando para o outro.
+3. No Registro.br (ou onde comprou), em **DNS**, crie os registros que a Vercel mostrar. Normalmente: `A` para `@` apontando para `76.76.21.21` e `CNAME` para `www` apontando para `cname.vercel-dns.com`. O HTTPS é automático.
+4. Troque o endereço no código: `CONFIG.SITE_URL` em `app.js`; `canonical`, `og:url`, `og:image` e `twitter:image` em `index.html`; `canonical` em `privacidade.html`. Depois atualize o `?v=` (seção acima).
