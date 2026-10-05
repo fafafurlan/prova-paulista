@@ -321,6 +321,8 @@ function countTo(el, to, dur = 450, f = fmt1) {
 function renderScore() {
   countTo($("#notaFinal"), calc.final, 600);
   countTo($("#tsNota"), calc.final, 400);
+  $("#n1Nota").textContent = fmt1(calc.nota1);
+  $("#n2Nota").textContent = fmt1(calc.nota2);
   $("#tsMax").textContent = fmt1(calc.max);
   $("#n1Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_1 * calc.nota1);
   $("#n2Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_2 * calc.nota2);
