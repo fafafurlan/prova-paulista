@@ -100,7 +100,8 @@ def pagina(caminho, titulo, descricao, migalhas, corpo):
 <meta property="og:url" content="{url}">
 <meta property="og:image" content="{SITE}/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231d3fd1'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='46' fill='white'%3E%3F%3C/text%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="/icons/logo.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

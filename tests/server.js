@@ -8,7 +8,7 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..", "provao-paulista-2026");
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
-  ".png": "image/png", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".txt": "text/plain" };
+  ".png": "image/png", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".txt": "text/plain", ".svg": "image/svg+xml" };
 
 function fakeRedis() {
   const db = new Map();
