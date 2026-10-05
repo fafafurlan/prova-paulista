@@ -19,7 +19,7 @@ const api = async (method, body, headers = {}) => {
   });
   return { status: r.status, data: await r.json() };
 };
-const entrar = (t, extra = {}) => api("POST", { token: t, nome: "Ana Beatriz Souza", ...ESCOLA, n1: 60, n2: 63, n3: 70, ...extra });
+const entrar = (t, extra = {}) => api("POST", { token: t, nome: "Ana Beatriz Souza", ...ESCOLA, n1: 66.7, n2: 70, n3: 70, ...extra });
 
 test("lista começa vazia", async () => {
   const { status, data } = await api("GET");
@@ -44,10 +44,11 @@ test("nome com HTML e números é limpo", async () => {
   await api("DELETE", { token: t });
 });
 
-test("aceita até 90 acertos e recusa notas inválidas", async () => {
+test("aceita notas de 0 a 100 com uma casa decimal e recusa as inválidas", async () => {
   const t = token();
-  assert.equal((await entrar(t, { n1: 90, n2: 90, n3: 100 })).data.voce.nota, 100);
-  for (const bad of [{ n1: 91 }, { n2: -1 }, { n3: 101 }, { n1: 10.5 }, { n1: "40" }]) {
+  assert.equal((await entrar(t, { n1: 100, n2: 100, n3: 100 })).data.voce.nota, 100);
+  assert.equal((await entrar(t, { n1: 72.5, n2: 0, n3: 0 })).data.voce.nota, 18.1);
+  for (const bad of [{ n1: 100.5 }, { n2: -1 }, { n3: 101 }, { n1: 10.55 }, { n1: "40" }]) {
     const { status, data } = await entrar(t, bad);
     assert.equal(status, 400, JSON.stringify(bad));
     assert.equal(data.error, "notas_invalidas");
@@ -76,7 +77,7 @@ test("ordena por nota, reconhece o aluno pela chave e sai do ranking", async () 
 test("mudar de escola move o registro", async () => {
   const t = token();
   await entrar(t);
-  const outra = await api("POST", { token: t, nome: "Ana Souza", escola: "ETEC Engenheiro Herval Bellusci", cidade: "Adamantina", n1: 60, n2: 63, n3: 70 });
+  const outra = await api("POST", { token: t, nome: "Ana Souza", escola: "ETEC Engenheiro Herval Bellusci", cidade: "Adamantina", n1: 66.7, n2: 70, n3: 70 });
   assert.equal(outra.data.total, 1);
   assert.equal((await api("GET")).data.total, 0);
   await api("DELETE", { token: t });

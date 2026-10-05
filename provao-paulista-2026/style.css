@@ -132,6 +132,7 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
 .step:active { background: var(--pen-soft); color: var(--pen); }
 .num-input { width: 2.4ch; height: 54px; font-size: 38px; line-height: 1; border: 0; border-inline: 1px solid var(--rule); padding: 0 8px; box-sizing: content-box; background: transparent; color: var(--ink); text-align: center; -moz-appearance: textfield; appearance: textfield; }
 .field[data-key="n3"] .num-input { width: 3.2ch; }
+.num-input.dec { width: 3.6ch; }
 .num-input:focus { outline: none; }
 .num-input::-webkit-outer-spin-button, .num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .field-unit { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--ink-2); min-width: 0; }

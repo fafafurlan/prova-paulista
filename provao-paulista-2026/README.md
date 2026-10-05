@@ -32,8 +32,7 @@ provao-paulista-2026/
 ## Fórmula (Anexo V, Quadro II)
 
 ```
-nota1 = acertos1 / TOTAL_QUESTOES_PROVA * 100
-nota2 = acertos2 / TOTAL_QUESTOES_PROVA * 100
+nota1, nota2 = notas do Provão I e II (0 a 100), como no boletim oficial
 final = 0,25·nota1 + 0,25·nota2 + 0,5·(3ª série + redação)
 máxima possível = 0,25·nota1 + 0,25·nota2 + 50
 média necessária no curso = max(0, (notaEstimada − 0,25·nota1 − 0,25·nota2) / 0,5)
@@ -145,7 +144,7 @@ O ranking usa uma função da Vercel (`api/ranking.js`) e um banco Redis gratuit
 **Como funciona:**
 - Participar é opcional: o aluno precisa ter escolhido a escola na lista de sugestões e clicar em "Entrar no ranking da escola".
 - O ranking mostra só o primeiro nome e a inicial do sobrenome (ex.: "Ana S."). O servidor monta esse nome e descarta o resto.
-- O servidor recalcula a nota a partir dos acertos e só aceita escolas de `escolas.json`.
+- O servidor recalcula a nota final a partir das notas enviadas e só aceita escolas de `escolas.json`.
 - Nomes ofensivos são recusados no perfil e no servidor (`bloqueio.js`, o mesmo arquivo nos dois lados). A comparação é por palavra inteira, para não barrar sobrenomes como "Pinto" ou "Rola"; para bloquear outra palavra, inclua em `PALAVRAS` e rode o gerador de páginas (atualiza o `?v=`).
 - Cada aparelho tem uma chave secreta (`pp26-rank-token` no `localStorage`); só quem tem a chave atualiza ou remove o próprio registro. "Sair do ranking" e "Apagar meus dados" removem o registro do servidor.
 - Limite de 300 envios por hora por IP (uma escola inteira pode sair pelo mesmo IP).

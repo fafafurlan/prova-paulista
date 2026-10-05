@@ -11,7 +11,6 @@
 const crypto = require("crypto");
 const nomeBloqueado = require("../bloqueio.js");
 
-const TOTAL_QUESTOES = 90; // questões em cada prova (edital, Anexo IV)
 const TOP_N = 50;
 const WRITES_PER_HOUR = 300; // por IP: uma escola inteira pode sair pelo mesmo IP
 const RETENCAO_DIAS = 180;   // registros sem atualização há mais tempo são apagados (ver privacidade.html)
@@ -59,10 +58,10 @@ function nomeExibido(nome) {
   return w.length > 1 ? `${first} ${w[w.length - 1].charAt(0).toLocaleUpperCase("pt-BR")}.` : first;
 }
 
-const inteiro = (v, max) => (Number.isInteger(v) && v >= 0 && v <= max ? v : null);
+// Notas de 0 a 100 com no máximo uma casa decimal (Provão I e II como no boletim; 3ª série + redação).
+const nota = (v) => (typeof v === "number" && v >= 0 && v <= 100 && Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 ? v : null);
 function notaFinal(n1, n2, n3) {
-  const nota = 0.25 * (n1 / TOTAL_QUESTOES) * 100 + 0.25 * (n2 / TOTAL_QUESTOES) * 100 + 0.5 * n3;
-  return Math.round(nota * 10) / 10;
+  return Math.round((0.25 * n1 + 0.25 * n2 + 0.5 * n3) * 10) / 10;
 }
 
 // Apaga da escola os registros sem atualização há mais de RETENCAO_DIAS (rkt guarda a última atualização).
@@ -122,7 +121,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === "POST") {
       if (!(await limite(req))) return res.status(429).json({ error: "muitas_tentativas" });
-      const n1 = inteiro(b.n1, TOTAL_QUESTOES), n2 = inteiro(b.n2, TOTAL_QUESTOES), n3 = inteiro(b.n3, 100);
+      const n1 = nota(b.n1), n2 = nota(b.n2), n3 = nota(b.n3);
       const nome = nomeExibido(b.nome);
       if (n1 === null || n2 === null || n3 === null) return res.status(400).json({ error: "notas_invalidas" });
       if (!nome) return res.status(400).json({ error: "nome_obrigatorio" });
