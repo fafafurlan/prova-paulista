@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacidade · Simulador Provão Paulista 2026</title>
+<meta name="description" content="Quais dados o Simulador Provão Paulista 2026 guarda, para quê, por quanto tempo e como apagar.">
+<meta name="theme-color" content="#0e1014">
+<link rel="canonical" href="https://prova-paulista-provao-paulista-2026.vercel.app/privacidade.html">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d3fd1'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css?v=8e0063a8">
+<script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
+<style>
+  .doc { max-width: 760px; padding-block: 40px 64px; display: flex; flex-direction: column; gap: 28px; }
+  .doc h1 { font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.05; font-stretch: 88%; letter-spacing: -0.02em; }
+  .doc h2 { font-size: 20px; margin-bottom: 8px; }
+  .doc p, .doc li { color: var(--ink-2); max-width: 68ch; }
+  .doc p { margin: 0; }
+  .doc ul { margin: 8px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+  .doc b { color: var(--ink); }
+  .doc section { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--rule); padding-top: 20px; }
+  .doc .resumo { border: 1px solid var(--pen); background: var(--pen-soft); border-radius: var(--r); padding: 16px 18px; }
+  .doc .resumo p { color: var(--ink); }
+  .doc .meta { font-size: 13px; color: var(--ink-3); }
+  .doc .head { display: flex; flex-direction: column; gap: 10px; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner wrap">
+    <a class="brand" href="./" aria-label="Voltar para o simulador">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">Simulador Provão Paulista</span>
+      <span class="brand-year mono">2026</span>
+    </a>
+    <div class="topbar-actions" style="margin-left:auto"><a class="btn btn-ghost" href="./">Voltar ao simulador</a></div>
+  </div>
+</header>
+
+<main class="wrap doc">
+  <div class="head">
+    <p class="kicker mono">Privacidade e seus dados</p>
+    <h1>O que o simulador guarda, e como apagar</h1>
+    <p class="meta">Atualizado em 5 de outubro de 2026.</p>
+  </div>
+
+  <div class="resumo">
+    <p><b>Resumo:</b> suas notas, seu nome e sua escola ficam no seu próprio aparelho. Só vão para o nosso servidor se você clicar em “Entrar no ranking da escola”, e mesmo assim só aparecem o seu primeiro nome com a inicial do sobrenome. Você pode sair do ranking e apagar tudo a qualquer momento.</p>
+  </div>
+
+  <section>
+    <h2>1. O que fica só no seu aparelho</h2>
+    <p>O simulador funciona no seu navegador. Estas informações ficam guardadas apenas nele (no armazenamento local do navegador) e não são enviadas para nenhum servidor:</p>
+    <ul>
+      <li>os acertos e as notas que você digita no boletim;</li>
+      <li>o nome e a escola que você informa na tela de boas-vindas;</li>
+      <li>os cursos do comparador, o curso escolhido em “Quanto preciso tirar”, o tema claro ou escuro;</li>
+      <li>uma chave aleatória que identifica o seu registro no ranking, se você entrar nele.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>2. O que vai para o servidor (só se você entrar no ranking)</h2>
+    <p>O ranking é opcional. Quando você clica em “Entrar no ranking da escola”, enviamos:</p>
+    <ul>
+      <li><b>primeiro nome e inicial do sobrenome</b> (ex.: “Ana S.”). O servidor monta esse formato e descarta o resto do nome;</li>
+      <li><b>escola e cidade</b>, escolhidas da lista oficial de escolas;</li>
+      <li><b>sua nota projetada</b>, recalculada pelo servidor a partir dos acertos informados;</li>
+      <li>uma versão embaralhada (hash) da sua chave, para que só o seu aparelho consiga atualizar ou apagar o seu registro.</li>
+    </ul>
+    <p>Não pedimos nem guardamos e-mail, telefone, idade, documento ou foto. Para evitar abusos, o endereço IP de cada envio é transformado em um código embaralhado e usado só para limitar a quantidade de envios por hora; esse código é apagado depois de 1 hora.</p>
+    <p>Os dados do ranking ficam num banco de dados (Upstash Redis) contratado pela hospedagem do site (Vercel). Eles servem só para mostrar a lista da sua escola e não são vendidos nem compartilhados com terceiros.</p>
+  </section>
+
+  <section>
+    <h2>3. Estatísticas de visita</h2>
+    <p>Usamos o Vercel Web Analytics para saber quantas pessoas usam o site e em quais páginas. Ele não usa cookies e não identifica você: mostra só números agregados, como total de visitas, país e tipo de aparelho.</p>
+  </section>
+
+  <section>
+    <h2>4. Por quanto tempo guardamos</h2>
+    <ul>
+      <li><b>Ranking:</b> enquanto você participar. Registros sem nenhuma atualização há mais de <b>180 dias</b> são apagados automaticamente.</li>
+      <li><b>Limite de envios:</b> o código do IP é apagado após 1 hora.</li>
+      <li><b>No seu aparelho:</b> até você apagar (veja abaixo) ou limpar os dados do navegador.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>5. Como apagar seus dados</h2>
+    <ul>
+      <li><b>Sair do ranking:</b> no simulador, seção “Ranking da escola” → “Sair do ranking”. Seu registro é apagado do servidor na hora.</li>
+      <li><b>Apagar tudo:</b> clique no botão com suas iniciais no topo → “Apagar meus dados”. Isso apaga nome e escola do aparelho e também tira você do ranking.</li>
+      <li><b>Pelo navegador:</b> limpar os dados do site no navegador apaga tudo o que fica no aparelho. Se você estava no ranking, saia dele antes, porque depois disso o aparelho perde a chave do registro e ele só será apagado automaticamente após 180 dias.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. Estudantes menores de idade</h2>
+    <p>A maioria de quem usa o simulador é estudante do ensino médio. Por isso o ranking é opcional, mostra só primeiro nome e inicial, fica restrito à lista de cada escola e pode ser deixado a qualquer momento. Se você é responsável por um estudante e quer que o registro dele seja removido, use as opções acima no aparelho dele.</p>
+  </section>
+
+  <section>
+    <h2>7. Sobre o simulador</h2>
+    <p>Este é um simulador independente, sem vínculo com a Secretaria da Educação de São Paulo (Seduc-SP) ou com as universidades. As notas e chances são estimativas e não garantem aprovação.</p>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap"><p><a href="./">Voltar ao simulador</a></p></div>
+</footer>
+<script defer src="/_vercel/insights/script.js"></script>
+</body>
+</html>

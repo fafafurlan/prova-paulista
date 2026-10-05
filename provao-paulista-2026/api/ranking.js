@@ -10,9 +10,11 @@
 "use strict";
 const crypto = require("crypto");
 
-const TOTAL_QUESTOES = 60;
+const TOTAL_QUESTOES = 90; // questões em cada prova (edital, Anexo IV)
 const TOP_N = 50;
 const WRITES_PER_HOUR = 300; // por IP: uma escola inteira pode sair pelo mesmo IP
+const RETENCAO_DIAS = 180;   // registros sem atualização há mais tempo são apagados (ver privacidade.html)
+const RETENCAO_S = RETENCAO_DIAS * 24 * 3600;
 
 const REDIS_URL = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
 const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -62,7 +64,16 @@ function notaFinal(n1, n2, n3) {
   return Math.round(nota * 10) / 10;
 }
 
+// Apaga da escola os registros sem atualização há mais de RETENCAO_DIAS (rkt guarda a última atualização).
+async function limparAntigos(sid) {
+  const corte = Math.floor(Date.now() / 1000) - RETENCAO_S;
+  const [velhos] = await redis([["ZRANGEBYSCORE", `rkt:${sid}`, "0", String(corte)]]);
+  if (!velhos || !velhos.length) return;
+  await redis([["ZREM", `rk:${sid}`, ...velhos], ["HDEL", `rkn:${sid}`, ...velhos], ["ZREM", `rkt:${sid}`, ...velhos]]);
+}
+
 async function lista(sid, me) {
+  await limparAntigos(sid);
   const k = `rk:${sid}`;
   const cmds = [["ZREVRANGE", k, "0", String(TOP_N - 1), "WITHSCORES"], ["ZCARD", k]];
   if (me) cmds.push(["ZREVRANK", k, me], ["ZSCORE", k, me]);
@@ -104,7 +115,7 @@ module.exports = async function handler(req, res) {
 
     if (req.method === "DELETE") {
       const [old] = await redis([["GET", `dev:${me}`]]);
-      if (old) await redis([["ZREM", `rk:${old}`, me], ["HDEL", `rkn:${old}`, me], ["DEL", `dev:${me}`]]);
+      if (old) await redis([["ZREM", `rk:${old}`, me], ["HDEL", `rkn:${old}`, me], ["ZREM", `rkt:${old}`, me], ["DEL", `dev:${me}`]]);
       return res.status(200).json({ ok: true });
     }
 
@@ -118,8 +129,13 @@ module.exports = async function handler(req, res) {
       const sid = schoolId(b.escola, b.cidade);
       const [old] = await redis([["GET", `dev:${me}`]]);
       const cmds = [];
-      if (old && old !== sid) cmds.push(["ZREM", `rk:${old}`, me], ["HDEL", `rkn:${old}`, me]);
-      cmds.push(["ZADD", `rk:${sid}`, String(notaFinal(n1, n2, n3)), me], ["HSET", `rkn:${sid}`, me, nome], ["SET", `dev:${me}`, sid]);
+      if (old && old !== sid) cmds.push(["ZREM", `rk:${old}`, me], ["HDEL", `rkn:${old}`, me], ["ZREM", `rkt:${old}`, me]);
+      cmds.push(
+        ["ZADD", `rk:${sid}`, String(notaFinal(n1, n2, n3)), me],
+        ["HSET", `rkn:${sid}`, me, nome],
+        ["ZADD", `rkt:${sid}`, String(Math.floor(Date.now() / 1000)), me],
+        ["SET", `dev:${me}`, sid, "EX", String(RETENCAO_S)],
+      );
       await redis(cmds);
       return res.status(200).json(await lista(sid, me));
     }

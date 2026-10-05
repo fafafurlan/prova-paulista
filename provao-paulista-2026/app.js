@@ -2,7 +2,7 @@
 "use strict";
 
 const CONFIG = {
-  TOTAL_QUESTOES_PROVA: 60,      // questões na prova da 1ª e da 2ª série
+  TOTAL_QUESTOES_PROVA: 90,      // questões em cada prova (edital, Anexo IV)
   PESO_SERIE_1: 0.25,
   PESO_SERIE_2: 0.25,
   PESO_SERIE_3_REDACAO: 0.5,     // 30% prova da 3ª série + 20% redação
@@ -12,8 +12,31 @@ const CONFIG = {
   MAX_PINS: 4,
   SITE_URL: "prova-paulista-provao-paulista-2026.vercel.app",
   STORAGE_KEY: "pp26-state",
-  DEFAULTS: { n1: 40, n2: 42, n3: 70 },
+  DEFAULTS: { n1: 60, n2: 63, n3: 70 },
+  STATE_VERSION: 2,              // v1 usava 60 questões por prova
+  // Provão Paulista Seriado III (Anexo IV): itens por área e pesos por área do curso (Anexo V, Quadro X).
+  PROVA3_ITENS: { ling: 24, mat: 18, hum: 24, nat: 24 },
+  PESO_OBJETIVA_3: 0.30,
+  PESO_REDACAO: 0.20,
+  PESOS_AREA: {
+    humanas: { ling: 2, mat: 1, hum: 2, nat: 1, red: 2 },
+    exatas: { ling: 1, mat: 3, hum: 1, nat: 2, red: 1 },
+    biologicas: { ling: 2, mat: 1, hum: 1, nat: 3, red: 1 },
+  },
+  MIN_ACERTOS_3: 22,             // item 13.9: USP, Unesp e Unicamp
+  INST_COM_MINIMO: ["USP", "UNESP", "UNICAMP"],
+  REDACAO_MINIMA: 20,            // item 11.2.4: nota inferior a 20% da redação elimina
+  DETALHE_DEFAULTS: { ling: 16, mat: 11, hum: 16, nat: 14, red: 70 },
 };
+const AREAS = { humanas: "Humanas e Artes", exatas: "Exatas e Tecnológicas", biologicas: "Biológicas e Saúde" };
+const AREAS_CURTO = { humanas: "Humanas", exatas: "Exatas", biologicas: "Biológicas" };
+const DET_CAMPOS = [
+  { k: "ling", label: "Linguagens", max: () => CONFIG.PROVA3_ITENS.ling },
+  { k: "mat", label: "Matemática", max: () => CONFIG.PROVA3_ITENS.mat },
+  { k: "hum", label: "Ciências Humanas", max: () => CONFIG.PROVA3_ITENS.hum },
+  { k: "nat", label: "Ciências da Natureza", max: () => CONFIG.PROVA3_ITENS.nat },
+  { k: "red", label: "Redação", max: () => 100 },
+];
 
 const INSTITUICOES = ["USP", "UNESP", "UNICAMP", "FATEC", "UNIVESP"];
 const CHANCES = [
@@ -67,7 +90,15 @@ function turnoGrupo(t) {
 
 /* ---------- state ---------- */
 const saved = store.get(CONFIG.STORAGE_KEY) || {};
+// Estado salvo antes da correção para 90 questões: converte os acertos mantendo a mesma nota.
+if (saved.v !== CONFIG.STATE_VERSION) {
+  ["n1", "n2"].forEach((k) => { if (Number.isFinite(saved[k])) saved[k] = Math.round((saved[k] * 90) / 60); });
+}
+const savedDet = saved.det && typeof saved.det === "object" ? saved.det : {};
 const state = {
+  modo3: saved.modo3 === "area" ? "area" : "simples",
+  det: Object.fromEntries(DET_CAMPOS.map((f) => [f.k, Number.isFinite(savedDet[f.k]) ? savedDet[f.k] : CONFIG.DETALHE_DEFAULTS[f.k]])),
+  areaFoco: AREAS[saved.areaFoco] ? saved.areaFoco : "exatas",
   n1: Number.isFinite(saved.n1) ? saved.n1 : CONFIG.DEFAULTS.n1,
   n2: Number.isFinite(saved.n2) ? saved.n2 : CONFIG.DEFAULTS.n2,
   n3: Number.isFinite(saved.n3) ? saved.n3 : CONFIG.DEFAULTS.n3,
@@ -81,14 +112,15 @@ const state = {
   revId: Number.isInteger(saved.revId) ? saved.revId : null,
 };
 const persist = debounce(() => {
-  const { n1, n2, n3, pins, revId } = state;
-  store.set(CONFIG.STORAGE_KEY, { n1, n2, n3, pins, revId });
+  const { n1, n2, n3, pins, revId, modo3, det, areaFoco } = state;
+  store.set(CONFIG.STORAGE_KEY, { v: CONFIG.STATE_VERSION, n1, n2, n3, pins, revId, modo3, det, areaFoco });
 }, 300);
 
 let CURSOS = [];
 let need = new Float32Array(0);
 let chanceOf = [];
-let calc = { nota1: 0, nota2: 0, base: 0, final: 0, max: 0 };
+let elimOf = [];   // motivo de eliminação por curso ("" se nenhum)
+let calc = { nota1: 0, nota2: 0, base: 0, final: 0, max: 0, own: {}, ownFoco: 0, acertos3: 0, elimRed: false, abaixo22: false };
 let list = [];
 let rendered = 0;
 const nodeCache = new Map();
@@ -106,22 +138,46 @@ function classify(media, estimativa) {
 function mediaNecessaria(notaCurso, base) {
   return Math.max(0, (notaCurso - base) / CONFIG.PESO_SERIE_3_REDACAO);
 }
+// Nota da prova objetiva da 3ª série (0–100) ponderada pelos pesos da área do curso.
+function objetiva3(area) {
+  const w = CONFIG.PESOS_AREA[area], it = CONFIG.PROVA3_ITENS, d = state.det;
+  let soma = 0, pesos = 0;
+  for (const k of ["ling", "mat", "hum", "nat"]) { soma += w[k] * (d[k] / it[k]) * 100; pesos += w[k]; }
+  return soma / pesos;
+}
+// "3ª série + redação" combinadas (0–100), comparável com a média necessária de cada curso.
+function own3(area) {
+  if (state.modo3 !== "area") return state.n3;
+  return (CONFIG.PESO_OBJETIVA_3 * objetiva3(area) + CONFIG.PESO_REDACAO * state.det.red) / CONFIG.PESO_SERIE_3_REDACAO;
+}
 function recompute() {
   const T = CONFIG.TOTAL_QUESTOES_PROVA;
   const nota1 = (state.n1 / T) * 100;
   const nota2 = (state.n2 / T) * 100;
   const base = CONFIG.PESO_SERIE_1 * nota1 + CONFIG.PESO_SERIE_2 * nota2;
-  calc = { nota1, nota2, base, final: base + CONFIG.PESO_SERIE_3_REDACAO * state.n3, max: base + CONFIG.PESO_SERIE_3_REDACAO * 100 };
+  const own = Object.fromEntries(Object.keys(AREAS).map((a) => [a, own3(a)]));
+  const detalhado = state.modo3 === "area";
+  const acertos3 = detalhado ? state.det.ling + state.det.mat + state.det.hum + state.det.nat : null;
+  const elimRed = detalhado && state.det.red < CONFIG.REDACAO_MINIMA;
+  const abaixo22 = detalhado && acertos3 < CONFIG.MIN_ACERTOS_3;
+  const ownFoco = own[state.areaFoco];
+  calc = { nota1, nota2, base, own, ownFoco, acertos3, elimRed, abaixo22,
+    final: base + CONFIG.PESO_SERIE_3_REDACAO * ownFoco, max: base + CONFIG.PESO_SERIE_3_REDACAO * 100 };
   for (let i = 0; i < CURSOS.length; i++) {
-    need[i] = mediaNecessaria(CURSOS[i].notaEstimada, base);
-    chanceOf[i] = classify(need[i], state.n3);
+    const c = CURSOS[i];
+    need[i] = mediaNecessaria(c.notaEstimada, base);
+    elimOf[i] = elimRed ? "redação abaixo de 20"
+      : abaixo22 && CONFIG.INST_COM_MINIMO.includes(c.instituicao) ? `menos de ${CONFIG.MIN_ACERTOS_3} acertos na 3ª` : "";
+    chanceOf[i] = elimOf[i] ? "fora" : classify(need[i], own[c.area] ?? ownFoco);
   }
 }
-const proximity = (i) => (need[i] <= 0 ? 100 : clamp((state.n3 / need[i]) * 100, 0, 100));
+const ownOf = (i) => calc.own[CURSOS[i].area] ?? calc.ownFoco;
+const proximity = (i) => (elimOf[i] ? 0 : need[i] <= 0 ? 100 : clamp((ownOf(i) / need[i]) * 100, 0, 100));
 function gapText(i) {
+  if (elimOf[i]) return elimOf[i];
   if (need[i] > 100) return "acima de 100";
-  if (need[i] <= state.n3) return "você já alcança";
-  return `faltam ${fmt1(need[i] - state.n3)}`;
+  if (need[i] <= ownOf(i)) return "você já alcança";
+  return `faltam ${fmt1(need[i] - ownOf(i))}`;
 }
 
 /* ---------- inputs ---------- */
@@ -163,6 +219,73 @@ function setupInputs() {
   });
 }
 
+/* ---------- 3ª série por área ---------- */
+function setupDetalhe() {
+  const grid = $("#detGrid");
+  grid.innerHTML = DET_CAMPOS.map((f) => `
+    <div class="det-item" data-d="${f.k}">
+      <label for="det-${f.k}">${f.label} <small class="mono">${f.k === "red" ? "nota 0–100" : `de ${f.max()}`}</small></label>
+      <div class="stepper sm">
+        <button class="step" type="button" data-dstep="-1" aria-label="Diminuir ${f.label}">−</button>
+        <input class="num-input num" id="det-${f.k}" type="number" inputmode="numeric" min="0" max="${f.max()}" step="1">
+        <button class="step" type="button" data-dstep="1" aria-label="Aumentar ${f.label}">+</button>
+      </div>
+    </div>`).join("");
+  const set = (k, v) => {
+    const f = DET_CAMPOS.find((x) => x.k === k);
+    state.det[k] = clamp(Math.round(v), 0, f.max());
+    $(`#det-${k}`).value = state.det[k];
+    scheduleUpdate();
+  };
+  DET_CAMPOS.forEach((f) => {
+    const inp = $(`#det-${f.k}`);
+    state.det[f.k] = clamp(state.det[f.k], 0, f.max());
+    inp.value = state.det[f.k];
+    inp.addEventListener("input", () => { const v = parseFloat(String(inp.value).replace(",", ".")); if (Number.isFinite(v)) { state.det[f.k] = clamp(Math.round(v), 0, f.max()); scheduleUpdate(); } });
+    inp.addEventListener("change", () => { inp.value = state.det[f.k]; });
+    inp.addEventListener("focus", () => inp.select());
+  });
+  grid.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-dstep]"); if (!b) return;
+    const k = b.closest(".det-item").dataset.d;
+    set(k, state.det[k] + Number(b.dataset.dstep));
+  });
+  document.querySelectorAll("[data-modo]").forEach((b) => b.addEventListener("click", () => {
+    state.modo3 = b.dataset.modo;
+    syncModo();
+    scheduleUpdate();
+  }));
+  $("#areaPick").innerHTML = Object.keys(AREAS).map((a) => `<button type="button" data-area="${a}" aria-pressed="false"><span>${AREAS_CURTO[a]}</span><b class="num" data-areanota></b></button>`).join("");
+  $("#areaPick").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-area]"); if (!b) return;
+    state.areaFoco = b.dataset.area;
+    scheduleUpdate();
+  });
+  syncModo();
+}
+function syncModo() {
+  const area = state.modo3 === "area";
+  document.querySelectorAll("[data-modo]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.modo === state.modo3)));
+  $("#modoSimples").hidden = area;
+  $("#modoArea").hidden = !area;
+  $("#areaPick").hidden = !area;
+}
+function renderDetalhe() {
+  if (state.modo3 !== "area") return;
+  $("#detTotal").textContent = `${nf0.format(calc.acertos3)} de 90 acertos na prova objetiva · redação ${nf0.format(state.det.red)}`;
+  const alertas = [];
+  if (calc.elimRed) alertas.push(`Redação abaixo de ${CONFIG.REDACAO_MINIMA}: pelo edital (item 11.2.4), isso elimina em todos os cursos.`);
+  if (calc.abaixo22) alertas.push(`Menos de ${CONFIG.MIN_ACERTOS_3} acertos na prova da 3ª série: USP, Unesp e Unicamp exigem esse mínimo (item 13.9). Fatec e Univesp não.`);
+  $("#detAlert").hidden = !alertas.length;
+  $("#detAlert").textContent = alertas.join(" ");
+  document.querySelectorAll("#areaPick [data-area]").forEach((b) => {
+    const a = b.dataset.area;
+    b.setAttribute("aria-pressed", String(a === state.areaFoco));
+    b.querySelector("[data-areanota]").textContent = fmt1(calc.base + CONFIG.PESO_SERIE_3_REDACAO * calc.own[a]);
+    b.setAttribute("aria-label", `Cursos de ${AREAS[a]}: nota ${fmt1(calc.base + CONFIG.PESO_SERIE_3_REDACAO * calc.own[a])}`);
+  });
+}
+
 let rafPending = false;
 function scheduleUpdate() {
   if (rafPending) return;
@@ -193,10 +316,13 @@ function renderScore() {
   $("#n2Nota").textContent = fmt1(calc.nota2);
   $("#n1Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_1 * calc.nota1);
   $("#n2Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_2 * calc.nota2);
-  $("#n3Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_3_REDACAO * state.n3);
+  $("#n3Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_3_REDACAO * calc.ownFoco);
   $("#notaMax").textContent = fmt1(calc.max);
   $("#notaBase").textContent = fmt1(calc.base);
-  $("#scoreFormula").textContent = `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
+  $("#scoreFormula").textContent = state.modo3 === "area"
+    ? `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,3 × ${fmt1(objetiva3(state.areaFoco))} + 0,2 × ${nf0.format(state.det.red)} · cursos de ${AREAS[state.areaFoco]}`
+    : `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
+  renderDetalhe();
   $("#sbFill").style.width = calc.final + "%";
   $("#sbMax").style.width = calc.max + "%";
   $("#sbTick").style.left = `calc(${calc.max}% - 1px)`;
@@ -268,7 +394,7 @@ function renderStats(counts, total) {
     const pct = b.querySelector("[data-pct]");
     let note = "";
     if (k === "muito" && n === 0) {
-      note = state.n3 + CONFIG.LIMITES_CHANCE.dificil >= 100
+      note = state.modo3 !== "area" && state.n3 + CONFIG.LIMITES_CHANCE.dificil >= 100
         ? `Vazia com estimativa a partir de ${100 - CONFIG.LIMITES_CHANCE.dificil}: quem precisaria de mais de 100 na 3ª fica em “Fora de alcance”.`
         : "Nenhum curso nesta faixa com as suas notas.";
     }
@@ -286,7 +412,7 @@ function createRow(i) {
   const el = document.createElement("article");
   el.className = "row enter";
   el.dataset.id = i;
-  const meta = [c.unidade, c.municipio, c.turno].filter(Boolean).map(esc).join(" · ");
+  const meta = [c.unidade, c.municipio, c.turno, AREAS_CURTO[c.area]].filter(Boolean).map(esc).join(" · ");
   el.innerHTML = `
     <div class="c-course">
       <div class="c-tags"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span><span class="rank mono">#${c.ranking}</span></div>
@@ -424,8 +550,9 @@ function renderReverse() {
   const c = CURSOS[i], n = need[i], k = chanceOf[i];
   let msg;
   if (n > 100) msg = `Mesmo com 100 na 3ª série + redação, sua nota máxima (<b>${fmt1(calc.max)}</b>) fica abaixo da nota estimada (<b>${fmt1(c.notaEstimada)}</b>).`;
-  else if (n <= state.n3) msg = `Sua estimativa atual (<b>${nf0.format(state.n3)}</b>) já alcança essa média.`;
-  else msg = `Faltam <b>${fmt1(n - state.n3)} pontos</b> em relação à sua estimativa atual (<b>${nf0.format(state.n3)}</b>).`;
+  else if (elimOf[i]) msg = `Com as notas informadas você seria eliminado neste curso: ${esc(elimOf[i])}.`;
+  else if (n <= ownOf(i)) msg = `Sua estimativa atual (<b>${fmt1(ownOf(i))}</b>) já alcança essa média.`;
+  else msg = `Faltam <b>${fmt1(n - ownOf(i))} pontos</b> em relação à sua estimativa atual (<b>${fmt1(ownOf(i))}</b>).`;
   const min22 = ["USP", "UNESP", "UNICAMP"].includes(c.instituicao)
     ? `<p class="full">${esc(c.instituicao)} também exige no mínimo <b>22 acertos</b> na prova da 3ª série.</p>` : "";
   out.innerHTML = `<div class="rev" data-chance="${k}">
@@ -470,7 +597,8 @@ function setupFilters() {
     else if (e.target.closest("[data-badge]")) {
       if (chanceOf[i] === "boa") celebrate(e.target.closest("[data-badge]"));
       else if (chanceOf[i] === "fora") toast(`Mesmo com 100 na 3ª + redação, sua nota máxima é ${fmt1(calc.max)}. Este curso pede ${fmt1(CURSOS[i].notaEstimada)}.`);
-      else toast(`Faltam ${fmt1(need[i] - state.n3)} pontos na média da 3ª série + redação para ${CURSOS[i].curso}.`);
+      else if (elimOf[i]) toast(`Eliminado neste curso: ${elimOf[i]}.`);
+      else toast(`Faltam ${fmt1(need[i] - ownOf(i))} pontos na média da 3ª série + redação para ${CURSOS[i].curso}.`);
     }
   });
   $("#compareTable").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
@@ -750,7 +878,7 @@ async function rankApi(method, payload) {
   if (!r.ok) { const err = new Error((data && data.error) || String(r.status)); err.status = r.status; throw err; }
   return data;
 }
-const rankPayload = () => ({ nome: profile.nome, escola: profile.escola, cidade: profile.cidade, n1: state.n1, n2: state.n2, n3: state.n3 });
+const rankPayload = () => ({ nome: profile.nome, escola: profile.escola, cidade: profile.cidade, n1: state.n1, n2: state.n2, n3: clamp(Math.round(calc.ownFoco), 0, 100) });
 const rankKey = () => (profile ? JSON.stringify(rankPayload()) : "");
 async function loadRanking() {
   if (!rankSchool()) { rank.data = null; rank.status = "idle"; renderRanking(); return; }
@@ -815,7 +943,7 @@ function renderRanking() {
   const action = rank.on && d.voce
     ? `<div class="rank-action"><p>Você está em <b>${d.voce.pos}º lugar</b> de ${nf0.format(d.total)} ${d.total === 1 ? "aluno" : "alunos"}. Sua nota é atualizada quando você muda os acertos.</p>
        <button class="link-btn" type="button" data-rank="leave">Sair do ranking</button></div>`
-    : `<div class="rank-action join"><p>Você vai aparecer como <b>${esc(rankName(profile.nome))}</b> com sua nota projetada (<b>${fmt1(calc.final)}</b>). Só a lista da sua escola mostra seu nome, e você pode sair quando quiser.</p>
+    : `<div class="rank-action join"><p>Você vai aparecer como <b>${esc(rankName(profile.nome))}</b> com sua nota projetada (<b>${fmt1(calc.final)}</b>). Só a lista da sua escola mostra seu nome, e você pode sair quando quiser. <a href="privacidade.html" target="_blank" rel="noopener">Como usamos seus dados</a>.</p>
        <button class="btn btn-primary" type="button" id="rankJoin" data-rank="join">Entrar no ranking da escola</button></div>`;
   body.innerHTML = `${rows}${meOutside}${action}<p class="rank-note">${nf0.format(d.total)} ${d.total === 1 ? "aluno participa" : "alunos participam"}. As notas são simulações informadas pelos próprios alunos.</p>`;
 }
@@ -885,7 +1013,7 @@ async function drawShareCard(withId = false) {
   const wNum = ctx.measureText(fmt1(calc.final)).width;
   ctx.fillStyle = C.ink3; ctx.font = `500 30px ${M}`; ctx.fillText("/100", X + wNum + 8, 430);
   ctx.fillStyle = C.ink2; ctx.font = `400 24px ${M}`;
-  ctx.fillText(`1ª série ${fmt1(calc.nota1)} · 2ª série ${fmt1(calc.nota2)} · 3ª + redação ${nf0.format(state.n3)}`, X, 508);
+  ctx.fillText(`1ª série ${fmt1(calc.nota1)} · 2ª série ${fmt1(calc.nota2)} · 3ª + redação ${fmt1(calc.ownFoco)}`, X, 508);
 
   // escala 0–100
   const sy = 568, sh = 22;
@@ -986,6 +1114,7 @@ async function boot() {
   hydrateIcons();
   setupTheme();
   setupInputs();
+  setupDetalhe();
   setupStats();
   setupFilters();
   setupShare();
