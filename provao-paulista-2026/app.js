@@ -1,4 +1,4 @@
-/* Simulador Provão Paulista Seriado 2026 — vanilla JS, sem build. */
+/* Dá pra passar? Simulador do Provão Paulista Seriado 2026 — vanilla JS, sem build. */
 "use strict";
 
 const CONFIG = {
@@ -76,6 +76,9 @@ const fmt1 = (v) => nf1.format(v);
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+// Mesmas regras de scripts/build_paginas.py: "Medicina (Integral)" -> "medicina" (página /cursos/medicina).
+const cursoBase = (s) => String(s).replace(/\s*\([^)]*\)/g, "").trim();
+const slugCurso = (s) => norm(cursoBase(s)).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const reduceMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const store = {
@@ -114,6 +117,7 @@ const state = {
   turno: "",
   sort: "ranking",
   q: "",
+  curso: "", // slug vindo de /cursos/<curso> ("Simular minha chance")
   pins: Array.isArray(saved.pins) ? saved.pins.slice(0, CONFIG.MAX_PINS) : [],
   revId: Number.isInteger(saved.revId) ? saved.revId : null,
 };
@@ -317,14 +321,12 @@ function countTo(el, to, dur = 450, f = fmt1) {
 function renderScore() {
   countTo($("#notaFinal"), calc.final, 600);
   countTo($("#tsNota"), calc.final, 400);
-  $("#tsMax").textContent = fmt1(calc.max);
   $("#n1Nota").textContent = fmt1(calc.nota1);
   $("#n2Nota").textContent = fmt1(calc.nota2);
+  $("#tsMax").textContent = fmt1(calc.max);
   $("#n1Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_1 * calc.nota1);
   $("#n2Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_2 * calc.nota2);
   $("#n3Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_3_REDACAO * calc.ownFoco);
-  $("#notaMax").textContent = fmt1(calc.max);
-  $("#notaBase").textContent = fmt1(calc.base);
   $("#scoreFormula").textContent = state.modo3 === "area"
     ? `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,3 × ${fmt1(objetiva3(state.areaFoco))} + 0,2 × ${nf0.format(state.det.red)} · cursos de ${AREAS[state.areaFoco]}`
     : `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
@@ -342,6 +344,7 @@ function baseFilter(i) {
   const c = CURSOS[i];
   if (state.inst && c.instituicao !== state.inst) return false;
   if (state.turno && c._turno !== state.turno) return false;
+  if (state.curso && c._slug !== state.curso) return false;
   if (qTokens.length) { for (const t of qTokens) if (!c._s.includes(t)) return false; }
   return true;
 }
@@ -386,8 +389,22 @@ function setupStats() {
     update({ reset: true });
   });
 }
+// A pergunta do nome do site, respondida com as notas atuais.
+function veredito(counts) {
+  const n = (k) => nf0.format(counts[k]), cursos = (k) => (counts[k] === 1 ? "curso" : "cursos");
+  if (counts.boa) return { tom: "boa", sim: "Dá!", txt: `Boa chance em ${n("boa")} ${cursos("boa")}` + (counts.possivel ? ` e possível em mais ${n("possivel")}.` : ".") };
+  if (counts.possivel) return { tom: "possivel", sim: "Dá, com esforço.", txt: `Chance possível em ${n("possivel")} ${cursos("possivel")}.` };
+  if (counts.dificil) return { tom: "dificil", sim: "Ainda está difícil.", txt: `${n("dificil")} ${cursos("dificil")} ficam ao alcance subindo a nota da 3ª série.` };
+  return { tom: "muito", sim: "Por enquanto, não.", txt: "Aumente a estimativa da 3ª série para ver onde dá." };
+}
 function renderStats(counts, total) {
   $("#distTotal").textContent = nf0.format(total);
+  // Resposta só com a lista completa (sem cursos carregados ou com filtros, a contagem não responde a pergunta).
+  if (CURSOS.length && total === CURSOS.length) {
+    const v = veredito(counts), ve = $("#veredito");
+    ve.dataset.tom = v.tom;
+    ve.innerHTML = `<b>${v.sim}</b> ${esc(v.txt)}`;
+  }
   const bar = $("#distBar");
   bar.classList.toggle("filtered", !!state.chance);
   bar.querySelectorAll(".dist-seg").forEach((s) => {
@@ -505,6 +522,7 @@ function togglePin(i) {
   else {
     if (state.pins.length >= CONFIG.MAX_PINS) { toast(`Dá para comparar até ${CONFIG.MAX_PINS} cursos. Remova um para adicionar outro.`); return; }
     state.pins.push(i);
+    toast(state.pins.length === 1 ? "Adicionado ao comparador. Marque outro curso para comparar." : "Adicionado ao comparador.");
   }
   const el = nodeCache.get(i); if (el) updateRow(el, i);
   renderCompare();
@@ -512,9 +530,13 @@ function togglePin(i) {
 }
 function renderCompare() {
   state.pins = state.pins.filter((i) => CURSOS[i]);
-  $("#compare").hidden = state.pins.length === 0;
-  if (!state.pins.length) return;
-  $("#pinCount").textContent = `${state.pins.length} de ${CONFIG.MAX_PINS}`;
+  const n = state.pins.length;
+  $("#cmpBar").hidden = n === 0;
+  document.body.classList.toggle("has-pins", n > 0);
+  $("#cmpBarCount").textContent = String(n);
+  $("#cmpBarSub").textContent = n === 1 ? "curso" : "cursos";
+  if (!n) { closeCompare(); return; }
+  $("#pinCount").textContent = `${n} de ${CONFIG.MAX_PINS}`;
   const P = state.pins.map((i) => ({ i, c: CURSOS[i], k: chanceOf[i] }));
   const row = (label, cell, cls = "") => `<tr><th scope="row">${label}</th>${P.map((p) => `<td class="${cls}">${cell(p)}</td>`).join("")}</tr>`;
   $("#compareTable").innerHTML =
@@ -528,6 +550,37 @@ function renderCompare() {
     row("Média na 3ª", ({ i, k }) => `<span style="color:var(--c-${k});font-weight:600">${need[i] > 100 ? ">100" : fmt1(need[i])}</span>`, "n") +
     row("Sua chance", ({ i, k }) => `<span style="color:var(--c-${k});font-weight:600">${CHANCE_BY_KEY[k].label}</span><br><span class="mono" style="font-size:12px;color:var(--ink-3)">${gapText(i)}</span>`) +
     "</tbody>";
+  // No celular, um cartão por curso (a tabela lado a lado não cabe).
+  $("#compareCards").innerHTML = P.map(({ i, c, k }) => `<article class="cmp-c" style="--cc:var(--c-${k})">
+    <div class="cmp-c-head"><span class="inst" data-inst="${esc(c.instituicao)}"><i></i>${esc(c.instituicao)}</span>
+      <button class="link-btn" type="button" data-unpin="${i}" aria-label="Remover ${esc(c.curso)} do comparador">Remover</button></div>
+    <h3>${esc(c.curso)}</h3>
+    <p class="cmp-c-local">${esc(c.unidade)} · ${esc(c.municipio)} · ${esc(c.turno)}</p>
+    <p class="cmp-c-chance"><b>${CHANCE_BY_KEY[k].label}</b> <span class="mono">${gapText(i)}</span></p>
+    <dl><div><dt>Vagas</dt><dd>${nf0.format(c.vagas)}</dd></div><div><dt>Nota estimada</dt><dd>${fmt1(c.notaEstimada)}</dd></div>
+      <div><dt>Média na 3ª</dt><dd class="need">${need[i] > 100 ? ">100" : fmt1(need[i])}</dd></div></dl>
+  </article>`).join("");
+}
+
+let closeCompare = () => {};
+function setupCompare() {
+  const modal = $("#compareModal"), bar = $("#cmpBar");
+  closeCompare = () => {
+    if (modal.hidden) return;
+    modal.hidden = true;
+    if (!bar.hidden) bar.focus();
+  };
+  bar.addEventListener("click", () => {
+    $("#toast").hidden = true;
+    renderCompare();
+    modal.hidden = false;
+    modal.querySelector(".btn-icon[data-close]").focus();
+  });
+  modal.addEventListener("click", (e) => {
+    if (e.target.closest("[data-close]")) closeCompare();
+    const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin));
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) closeCompare(); });
 }
 
 /* ---------- quanto preciso? ---------- */
@@ -624,7 +677,6 @@ function setupFilters() {
     const main = e.target.closest(".row-main");
     if (main && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toggleRow(main.closest(".row")); }
   });
-  $("#compareTable").addEventListener("click", (e) => { const b = e.target.closest("[data-unpin]"); if (b) togglePin(Number(b.dataset.unpin)); });
   $("#btnClearFilters").addEventListener("click", clearFilters);
   $("#btnClearFilters2").addEventListener("click", clearFilters);
   $("#btnClearPins").addEventListener("click", () => {
@@ -637,8 +689,18 @@ function setupFilters() {
     new IntersectionObserver((ents) => { if (ents.some((x) => x.isIntersecting)) renderMore(); }, { rootMargin: "900px 0px" }).observe($("#sentinel"));
   }
 }
+// As páginas de curso chegam como /?curso=medicina#cursos: filtra o curso e limpa o endereço.
+function filtroDoLink() {
+  const params = new URLSearchParams(location.search);
+  const curso = (params.get("curso") || "").toLowerCase();
+  if (!curso) return;
+  if (/^[a-z0-9-]{1,80}$/.test(curso)) state.curso = curso;
+  params.delete("curso");
+  history.replaceState(null, "", location.pathname + (params.toString() ? `?${params}` : "") + location.hash);
+}
 function activeFilters() {
   const f = [];
+  if (state.curso) { const i = CURSOS.findIndex((c) => c._slug === state.curso); f.push(i >= 0 ? cursoBase(CURSOS[i].curso) : "curso"); }
   if (state.q.trim()) f.push(`busca “${state.q.trim()}”`);
   if (state.inst) f.push(state.inst);
   if (state.chance) f.push(CHANCE_BY_KEY[state.chance].label);
@@ -646,7 +708,7 @@ function activeFilters() {
   return f;
 }
 function clearFilters() {
-  state.inst = ""; state.chance = ""; state.turno = ""; state.q = ""; qTokens = [];
+  state.inst = ""; state.chance = ""; state.turno = ""; state.q = ""; state.curso = ""; qTokens = [];
   $("#q").value = ""; $("#fTurno").value = "";
   update({ reset: true });
 }
@@ -746,12 +808,7 @@ function initials(nome) {
   return ((w[0] || "")[0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase();
 }
 function renderProfile() {
-  const hello = $("#hello");
-  hello.hidden = !profile;
-  if (profile) hello.innerHTML = `Olá, <b>${esc(firstName())}</b>!` + (profile.escola ? ` <span class="hello-sep" aria-hidden="true">·</span> ${esc(escolaLabel())}` : "");
-  $("#idNome").textContent = profile ? profile.nome : "—";
-  $("#idEscola").textContent = escolaLabel() || "—";
-  $("#btnEditId").textContent = profile ? "Editar" : "Adicionar nome";
+  $("#heroTitle").textContent = profile ? `${firstName()}, dá pra passar?` : "Dá pra passar?";
   $("#profileAvatar").textContent = profile ? initials(profile.nome) : "+";
   $("#profileLabel").textContent = profile ? `Perfil: ${firstName()}` : "Adicionar nome e escola";
   $("#btnProfile").setAttribute("aria-label", profile ? `Editar nome e escola (${profile.nome})` : "Adicionar nome e escola");
@@ -831,7 +888,11 @@ function setupProfile() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const n = cleanText(nome.value, 40);
-    if (!n) { err.hidden = false; nome.setAttribute("aria-invalid", "true"); nome.focus(); return; }
+    const ruim = !!n && typeof window.nomeBloqueado === "function" && window.nomeBloqueado(n);
+    if (!n || ruim) {
+      err.textContent = ruim ? "Esse nome não pode ser usado. Use seu nome de verdade." : "Digite seu nome para continuar, ou toque em “Pular”.";
+      err.hidden = false; nome.setAttribute("aria-invalid", "true"); nome.focus(); return;
+    }
     profile = picked
       ? { nome: n, escola: picked.n, cidade: picked.c }
       : { nome: n, escola: cleanText(escola.value, 120), cidade: "" };
@@ -857,7 +918,6 @@ function setupProfile() {
   modal.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   openProfileDialog = open;
   $("#btnProfile").addEventListener("click", open);
-  $("#btnEditId").addEventListener("click", open);
   renderProfile();
   let seen = false;
   try { seen = !!localStorage.getItem(WELCOME_KEY); } catch (e) { seen = true; }
@@ -926,6 +986,7 @@ async function joinRanking() {
   } catch (e) {
     toast(e.message === "muitas_tentativas" ? "Muitas atualizações seguidas. Tente de novo em alguns minutos."
       : e.message === "escola_invalida" ? "Escolha sua escola na lista de sugestões para entrar no ranking."
+      : e.message === "nome_invalido" ? "Esse nome não pode aparecer no ranking. Edite seu perfil com seu nome de verdade."
       : "Não foi possível entrar no ranking agora. Tente de novo.");
   }
   renderRanking();
@@ -995,14 +1056,14 @@ const whatsappUrl = (text) => `https://wa.me/?text=${encodeURIComponent(text)}`;
 function shareText(ref = "compartilhar") {
   const counts = { boa: 0, possivel: 0 };
   chanceOf.forEach((k) => { if (k in counts) counts[k]++; });
-  return `Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100.\n` +
-    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nSimule a sua: ${siteLink(ref)}`;
+  return `Dá pra passar? Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100.\n` +
+    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nDescubra a sua: ${siteLink(ref)}`;
 }
 function inviteText(joined) {
   const escola = profile && profile.escola ? profile.escola : "minha escola";
   return joined
-    ? `Entrei no ranking da ${escola} no Simulador do Provão Paulista 2026. Simula a sua nota, vê sua chance em 1.805 cursos e entra também: ${siteLink("convite")}`
-    : `Bora montar o ranking da ${escola} no Simulador do Provão Paulista 2026? Simula sua nota, vê sua chance em 1.805 cursos e entra no ranking da escola: ${siteLink("convite")}`;
+    ? `Entrei no ranking da ${escola} no Dá pra passar?, o simulador do Provão Paulista 2026. Simula a sua nota, vê sua chance em 1.805 cursos e entra também: ${siteLink("convite")}`
+    : `Bora montar o ranking da ${escola} no Dá pra passar?, o simulador do Provão Paulista 2026? Simula sua nota, vê sua chance em 1.805 cursos e entra no ranking da escola: ${siteLink("convite")}`;
 }
 function fitText(ctx, text, maxW) {
   if (ctx.measureText(text).width <= maxW) return text;
@@ -1028,9 +1089,11 @@ async function drawShareCard(withId = false) {
   ctx.strokeStyle = C.rule; ctx.lineWidth = 2; ctx.strokeRect(48, 48, W - 96, H - 96);
 
   // cabeçalho
-  ctx.strokeStyle = C.pen; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(X + 16, 128, 16, 0, Math.PI * 2); ctx.stroke();
-  ctx.fillStyle = C.pen; ctx.beginPath(); ctx.arc(X + 16, 128, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = C.ink; ctx.font = `700 30px ${D}`; ctx.fillText(withId && profile ? "Provão Paulista 2026" : "Simulador Provão Paulista 2026", X + 50, 139);
+  // marca: quadrado azul com "?"
+  ctx.fillStyle = C.pen; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(X, 108, 40, 40, 10); else ctx.rect(X, 108, 40, 40); ctx.fill();
+  ctx.fillStyle = "#ffffff"; ctx.font = `800 30px ${D}`; ctx.textAlign = "center"; ctx.fillText("?", X + 20, 139); ctx.textAlign = "left";
+  ctx.fillStyle = C.ink; ctx.font = `800 32px ${D}`; ctx.fillText("Dá pra passar?", X + 56, 140);
+  if (!(withId && profile)) { const wb = ctx.measureText("Dá pra passar?").width; ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Provão Paulista 2026", X + 72 + wb, 139); }
   ctx.textAlign = "right";
   if (withId && profile) {
     ctx.fillStyle = C.ink; ctx.font = `600 24px ${S}`; ctx.fillText(fitText(ctx, profile.nome, 330), R, profile.escola ? 122 : 137);
@@ -1095,7 +1158,7 @@ async function drawShareCard(withId = false) {
 
   // rodapé
   line(H - 150);
-  ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Simule a sua nota em", X, H - 108);
+  ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Descubra se dá pra passar em", X, H - 108);
   ctx.fillStyle = C.pen; ctx.font = `600 28px ${M}`; ctx.fillText(fitText(ctx, CONFIG.SITE_URL, CW), X, H - 70);
   return cv;
 }
@@ -1154,6 +1217,7 @@ function showTab(name, { scroll = true } = {}) {
     t.setAttribute("aria-selected", String(on));
     t.tabIndex = on ? 0 : -1;
   });
+  document.body.dataset.abaAtual = name; // não usar data-tab no body: o clique das abas procura [data-tab]
   if (location.hash !== `#${name}`) history.replaceState(null, "", `#${name}`);
   if (scroll) window.scrollTo({ top: 0, behavior: "instant" });
 }
@@ -1234,6 +1298,8 @@ async function boot() {
   setupDetalhe();
   setupStats();
   setupFilters();
+  setupCompare();
+  filtroDoLink();
   setupShare();
   setupProfile();
   setupRanking();
@@ -1249,10 +1315,10 @@ async function boot() {
   CURSOS.forEach((c) => {
     c._turno = turnoGrupo(c.turno);
     c._s = norm(`${c.curso} ${c.unidade} ${c.municipio} ${c.instituicao} ${c.codigo}`);
+    c._slug = slugCurso(c.curso);
   });
   need = new Float32Array(CURSOS.length);
   chanceOf = new Array(CURSOS.length);
-  $("#heroTotal").textContent = nf0.format(CURSOS.length);
   setupReverse();
   update({ reset: true });
 }

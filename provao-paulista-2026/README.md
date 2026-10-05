@@ -1,4 +1,4 @@
-# Simulador Provão Paulista Seriado 2026
+# Dá pra passar? Simulador do Provão Paulista Seriado 2026
 
 Site estático (HTML + CSS + JS puro, sem build) que calcula a nota final projetada no Provão Paulista Seriado 2026 e a chance do aluno em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.
 
@@ -10,8 +10,11 @@ provao-paulista-2026/
 ├── privacidade.html      # política de privacidade (dados do ranking, analytics, como apagar)
 ├── style.css             # tema escuro/claro, glassmorphism, animações
 ├── app.js                # CONFIG, cálculo, filtros, lazy render, comparador, compartilhar
+├── bloqueio.js           # filtro de nomes ofensivos (navegador e api/ranking.js)
 ├── cursos.json           # 1.805 cursos extraídos da aba "Todos os cursos"
 ├── escolas.json          # 4.060 escolas de SP com ensino médio (sugestões no campo "Escola")
+├── cursos/, universidades/  # páginas por curso e por universidade (geradas, para o Google)
+├── sitemap.xml, robots.txt # gerados junto com as páginas
 ├── og.png                # imagem de pré-visualização para redes sociais (1200×630)
 ├── manifest.webmanifest  # app instalável (nome, cores, ícones)
 ├── sw.js                 # service worker: funciona sem internet (menos o ranking)
@@ -21,7 +24,9 @@ provao-paulista-2026/
 ├── netlify.toml          # alternativa para Netlify
 ├── scripts/xlsx_to_json.py    # regenera cursos.json a partir da planilha
 ├── scripts/build_escolas.py   # regenera escolas.json a partir do Censo Escolar
-└── scripts/areas.py           # classifica cada curso em Humanas, Exatas ou Biológicas (campo "area")
+├── scripts/areas.py           # classifica cada curso em Humanas, Exatas ou Biológicas (campo "area")
+├── scripts/build_paginas.py   # gera cursos/, universidades/, sitemap.xml e os ?v= dos HTML
+└── scripts/fonte.json         # texto e data do aviso "Notas de corte estimadas"
 ```
 
 ## Fórmula (Anexo V, Quadro II)
@@ -83,7 +88,8 @@ netlify deploy --prod --dir .
    pip install openpyxl
    python3 scripts/xlsx_to_json.py caminho/para/ESTIMATIVA_PROVAO_PAULISTA.xlsx
    ```
-3. Faça commit e push de `cursos.json`. Com o projeto conectado à Vercel, o deploy é automático; senão rode `vercel --prod` de novo.
+3. Rode `python3 scripts/build_paginas.py` (páginas de curso e sitemap) e atualize a data em `scripts/fonte.json`.
+4. Faça commit e push de `cursos.json` e dos arquivos gerados. Com o projeto conectado à Vercel, o deploy é automático; senão rode `vercel --prod` de novo.
 
 Para mudar o número de questões das provas ou os limites de chance, edite só o `CONFIG` em `app.js`.
 
@@ -101,12 +107,31 @@ Nome e escola informados pelo aluno ficam só no `localStorage` do navegador (`p
 
 ## Cache e versões dos arquivos
 
-O `index.html` carrega `style.css?v=…` e `app.js?v=…` (a `privacidade.html` também carrega o `style.css?v=…`). Sempre que alterar um desses arquivos, troque o valor de `v` (por exemplo, pelos 8 primeiros caracteres de `cat style.css app.js | sha1sum`). Assim o navegador de quem já visitou o site baixa a versão nova na hora, em vez de misturar HTML novo com CSS/JS antigos.
+O `index.html` carrega `style.css?v=…`, `bloqueio.js?v=…` e `app.js?v=…` (a `privacidade.html` e as páginas de curso também carregam o `style.css?v=…`). O valor de `v` são os 8 primeiros caracteres do SHA-1 desses três arquivos. Assim o navegador de quem já visitou o site baixa a versão nova na hora, em vez de misturar HTML novo com CSS/JS antigos.
+
+Não precisa trocar à mão: rode o gerador (seção abaixo) depois de mudar qualquer um desses arquivos.
+
+## Páginas para o Google
+
+`scripts/build_paginas.py` gera páginas estáticas a partir de `cursos.json`:
+
+- `cursos/<curso>.html` (ex.: `/cursos/medicina`): todas as opções do curso, com vagas, cidade, turno e nota estimada, e o botão "Simular minha chance", que abre o simulador já filtrado nesse curso (`/?curso=medicina#cursos`);
+- `universidades/<sigla>.html` (ex.: `/universidades/usp`) e `cursos/index.html` (`/cursos`);
+- `sitemap.xml` e `robots.txt`.
+
+O simulador não tem links para essas páginas (para a tela principal ficar limpa): elas existem para o Google, que as encontra pelo `sitemap.xml`, e levam o aluno de volta ao simulador.
+
+O mesmo script atualiza os `?v=` e o aviso da fonte das notas no `index.html`. Rode sempre que mudar `cursos.json`, `scripts/fonte.json`, `style.css`, `app.js` ou `bloqueio.js`, e faça commit de tudo o que ele gerar (o teste automático falha se as páginas estiverem desatualizadas):
 
 ```bash
-V=$(cat style.css app.js | sha1sum | cut -c1-8)
-sed -i -E "s/(style\.css|app\.js)\?v=[a-z0-9]+/\1?v=$V/g" index.html privacidade.html
+python3 scripts/build_paginas.py
 ```
+
+Depois do primeiro deploy, cadastre o site no [Google Search Console](https://search.google.com/search-console) e envie `https://<seu-domínio>/sitemap.xml` para o Google encontrar as páginas mais rápido.
+
+### Fonte das notas
+
+O texto do aviso "Notas de corte estimadas…" (acima da lista de cursos e em cada página de curso) fica em `scripts/fonte.json` (`texto` e `atualizado`). Edite e rode o gerador.
 
 ## Ranking por escola
 
@@ -121,6 +146,7 @@ O ranking usa uma função da Vercel (`api/ranking.js`) e um banco Redis gratuit
 - Participar é opcional: o aluno precisa ter escolhido a escola na lista de sugestões e clicar em "Entrar no ranking da escola".
 - O ranking mostra só o primeiro nome e a inicial do sobrenome (ex.: "Ana S."). O servidor monta esse nome e descarta o resto.
 - O servidor recalcula a nota a partir dos acertos e só aceita escolas de `escolas.json`.
+- Nomes ofensivos são recusados no perfil e no servidor (`bloqueio.js`, o mesmo arquivo nos dois lados). A comparação é por palavra inteira, para não barrar sobrenomes como "Pinto" ou "Rola"; para bloquear outra palavra, inclua em `PALAVRAS` e rode o gerador de páginas (atualiza o `?v=`).
 - Cada aparelho tem uma chave secreta (`pp26-rank-token` no `localStorage`); só quem tem a chave atualiza ou remove o próprio registro. "Sair do ranking" e "Apagar meus dados" removem o registro do servidor.
 - Limite de 300 envios por hora por IP (uma escola inteira pode sair pelo mesmo IP).
 

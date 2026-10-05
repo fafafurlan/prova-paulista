@@ -4,6 +4,7 @@ const { test, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("node:crypto");
 const { start } = require("./server");
+const nomeBloqueado = require("../provao-paulista-2026/bloqueio.js");
 
 let srv;
 before(async () => { srv = await start(); });
@@ -85,5 +86,17 @@ test("registros sem atualização há mais de 180 dias são apagados", async () 
   await entrar(token());
   assert.equal((await api("GET")).data.total, 1);
   srv.age();
+  assert.equal((await api("GET")).data.total, 0);
+});
+
+test("filtro de nomes: barra ofensas e disfarces, deixa nomes reais passarem", () => {
+  for (const n of ["Porra Silva", "p0rr4", "Caralhooo", "fdp", "Ana Puta", "C4r4lh0 da Silva", "p u n h e t a", "Hitler"]) assert.equal(nomeBloqueado(n), true, n);
+  for (const n of ["Ana Beatriz Souza", "Paulo Pinto", "Ana Cunha", "Caroline Puttini", "Débora Fodor", "Sofia Rola", "Igor Caralin", "Lucas Pauletti"]) assert.equal(nomeBloqueado(n), false, n);
+});
+
+test("ranking recusa nome ofensivo", async () => {
+  const { status, data } = await entrar(token(), { nome: "Caralho da Silva" });
+  assert.equal(status, 400);
+  assert.equal(data.error, "nome_invalido");
   assert.equal((await api("GET")).data.total, 0);
 });

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://prova-paulista-provao-paulista-2026.vercel.app/sitemap.xml

@@ -57,6 +57,9 @@ test("carrega os cursos e calcula a nota padrão", async () => {
   assert.equal(await page.textContent("#notaFinal"), "69,2");
   const leg = await legenda(page);
   for (const k of ["boa", "possivel", "dificil", "muito", "fora"]) assert.equal(leg[k], esp[k], k);
+  const ver = await page.textContent("#veredito");
+  if (esp.boa) assert.match(ver, new RegExp(`^Dá! Boa chance em ${esp.boa.toLocaleString("pt-BR")} curso`));
+  assert.match(await page.title(), /^Dá pra passar\?/);
   assert.deepEqual(erros, []);
   await ctx.close();
 });
@@ -189,8 +192,23 @@ test("lista compacta: tocar no curso mostra os detalhes", async () => {
   await linha.locator(".row-main").click();
   assert.equal(await linha.locator(".row-details").isVisible(), true);
   assert.match(await linha.locator(".row-details").textContent(), /Vagas.*Nota estimada.*Média na 3ª/s);
+  assert.equal(await page.isVisible("#cmpBar"), false);
   await linha.locator("[data-pin]").click();
-  assert.equal(await page.isVisible("#compare"), true);
+  assert.equal(await page.isVisible("#cmpBar"), true);
+  assert.match(await page.textContent("#cmpBar"), /Comparar\s*1\s*curso/);
+  const curso = await linha.locator("h3").textContent();
+  await page.click("#cmpBar");
+  assert.equal(await page.isVisible("#compareModal"), true);
+  assert.ok((await page.textContent("#compareTable")).includes(curso));
+  await page.keyboard.press("Escape");
+  assert.equal(await page.isVisible("#compareModal"), false);
+  await aba(page, "nota");
+  assert.equal(await page.isVisible("#cmpBar"), false);
+  await aba(page, "cursos");
+  await page.click("#cmpBar");
+  await page.click("#compareTable [data-unpin]");
+  assert.equal(await page.isVisible("#compareModal"), false);
+  assert.equal(await page.isVisible("#cmpBar"), false);
   await ctx.close();
 });
 
@@ -205,5 +223,92 @@ test("menu do topo abre, troca o tema e fecha com Esc", async () => {
   await page.click("#btnMenu");
   await page.keyboard.press("Escape");
   assert.equal(await page.isVisible("#menu"), false);
+  await ctx.close();
+});
+
+test("perfil recusa nome ofensivo", async () => {
+  const { page, ctx, erros } = await abrir();
+  await page.click("#btnMenu");
+  await page.click("#btnProfile");
+  await page.fill("#pfNome", "Porra Silva");
+  await page.click("#pfSave");
+  assert.match(await page.textContent("#pfError"), /não pode ser usado/);
+  assert.equal(await page.isVisible("#welcomeModal"), true);
+  await page.fill("#pfNome", "Ana Souza");
+  await page.click("#pfSave");
+  assert.equal(await page.isVisible("#welcomeModal"), false);
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("aviso da fonte das notas aparece acima da lista", async () => {
+  const { page, ctx } = await abrir();
+  await aba(page, "cursos");
+  assert.match(await page.textContent("#fonteNotas"), /estimadas.*atualizadas em/s);
+  await ctx.close();
+});
+
+test("página de curso: tabela e link para simular com o curso filtrado", async () => {
+  const cursos = JSON.parse(fs.readFileSync(path.join(ROOT, "cursos.json"), "utf8"));
+  const medicina = cursos.filter((c) => c.curso.replace(/\s*\([^)]*\)/g, "").trim() === "Medicina");
+  const { page, ctx, erros } = await abrir({ caminho: "/cursos/medicina" });
+  assert.match(await page.title(), /^Medicina no Provão Paulista 2026/);
+  assert.equal(await page.locator(".pg-table tbody tr").count(), medicina.length);
+  assert.match(await page.textContent(".fonte"), /não oficiais/);
+  await page.click(".pg-cta a");
+  await page.waitForFunction(() => document.querySelectorAll("#grid .row").length > 0);
+  assert.equal(await page.isVisible("#painel-cursos"), true);
+  assert.equal(new URL(page.url()).search, "");
+  const nomes = await page.$$eval("#grid .row h3", (hs) => hs.map((h) => h.textContent));
+  assert.equal(nomes.length, medicina.length);
+  assert.ok(nomes.every((n) => n.replace(/\s*\([^)]*\)/g, "").trim() === "Medicina"), nomes.join(" | "));
+  assert.match(await page.textContent("#activeList"), /Medicina/);
+  await page.click("#btnClearFilters");
+  await page.waitForTimeout(300);
+  assert.match(await page.textContent("#countLabel"), /^1\.805 de/);
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("sitemap: todas as páginas existem, com título e link canônico próprios", async () => {
+  const xml = await (await fetch(`${srv.url}/sitemap.xml`)).text();
+  const urls = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
+  assert.ok(urls.length > 250);
+  const titulos = new Set();
+  for (const u of urls) {
+    const r = await fetch(srv.url + u);
+    assert.equal(r.status, 200, u);
+    const html = await r.text();
+    titulos.add(html.match(/<title>([^<]*)<\/title>/)[1]);
+    if (u !== "/" && u !== "/privacidade") assert.match(html, new RegExp(`<link rel="canonical" href="https://[^"]+${u}">`), u);
+  }
+  assert.equal(titulos.size, urls.length);
+  assert.match(await (await fetch(`${srv.url}/robots.txt`)).text(), /Sitemap: https:\/\/.+\/sitemap\.xml/);
+});
+
+test("celular: página de curso sem rolagem horizontal", async () => {
+  const { page, ctx } = await abrir({ largura: 390, caminho: "/cursos/eixo-de-computacao" });
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390));
+  await ctx.close();
+});
+
+test("celular: comparador em cartões, acima das abas", async () => {
+  const { page, ctx, erros } = await abrir({ largura: 390 });
+  await aba(page, "cursos");
+  for (const n of [0, 1]) {
+    const linha = page.locator("#grid .row").nth(n);
+    await linha.locator(".row-main").click();
+    await linha.locator("[data-pin]").click();
+  }
+  const bar = await page.locator("#cmpBar").boundingBox();
+  const tabs = await page.locator(".tabs").boundingBox();
+  assert.ok(bar.y + bar.height <= tabs.y, "barra do comparador fica acima das abas");
+  await page.click("#cmpBar");
+  assert.equal(await page.locator("#compareCards .cmp-c").count(), 2);
+  assert.equal(await page.isVisible("#compareTable"), false);
+  await page.locator("#compareCards [data-unpin]").first().click();
+  assert.equal(await page.locator("#compareCards .cmp-c").count(), 1);
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= 390));
+  assert.deepEqual(erros, []);
   await ctx.close();
 });

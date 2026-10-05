@@ -1,6 +1,6 @@
 /* Servidor local para os testes: arquivos do site + /api/ranking (a mesma função
  * da Vercel) + um Redis falso que fala o protocolo REST da Upstash (/pipeline).
- * Também imita o cleanUrls da Vercel (/privacidade -> privacidade.html). */
+ * Também imita o cleanUrls da Vercel (/privacidade -> privacidade.html, /cursos -> cursos/index.html). */
 "use strict";
 const http = require("http");
 const fs = require("fs");
@@ -8,7 +8,7 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..", "provao-paulista-2026");
 const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".css": "text/css", ".json": "application/json",
-  ".png": "image/png", ".webmanifest": "application/manifest+json" };
+  ".png": "image/png", ".webmanifest": "application/manifest+json", ".xml": "application/xml", ".txt": "text/plain" };
 
 function fakeRedis() {
   const db = new Map();
@@ -78,6 +78,7 @@ async function start() {
       let f = path.join(ROOT, u.pathname === "/" ? "index.html" : decodeURIComponent(u.pathname));
       if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
       if (!fs.existsSync(f) && fs.existsSync(`${f}.html`)) f = `${f}.html`;
+      if (fs.existsSync(f) && fs.statSync(f).isDirectory()) f = path.join(f, "index.html");
       if (!fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
       res.writeHead(200, { "content-type": TYPES[path.extname(f)] || "application/octet-stream" });
       fs.createReadStream(f).pipe(res);

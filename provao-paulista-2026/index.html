@@ -3,34 +3,34 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Simulador Provão Paulista 2026</title>
-<meta name="description" content="Simule sua nota final no Provão Paulista Seriado 2026 e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
+<title>Dá pra passar? Simulador do Provão Paulista 2026</title>
+<meta name="description" content="Dá pra passar? Simule sua nota final no Provão Paulista Seriado 2026 e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
 <meta name="theme-color" content="#0e1014">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://prova-paulista-provao-paulista-2026.vercel.app/">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:site_name" content="Simulador Provão Paulista 2026">
-<meta property="og:title" content="Simulador Provão Paulista 2026: qual a sua chance?">
+<meta property="og:site_name" content="Dá pra passar?">
+<meta property="og:title" content="Dá pra passar? Sua chance no Provão Paulista 2026">
 <meta property="og:description" content="Coloque seus acertos do Provão I e II, estime a 3ª série + redação e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
 <meta property="og:url" content="https://prova-paulista-provao-paulista-2026.vercel.app/">
 <meta property="og:image" content="https://prova-paulista-provao-paulista-2026.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Simulador Provão Paulista 2026">
+<meta name="twitter:title" content="Dá pra passar? Simulador do Provão Paulista 2026">
 <meta name="twitter:description" content="Sua nota final projetada e sua chance em 1.805 cursos públicos de SP.">
 <meta name="twitter:image" content="https://prova-paulista-provao-paulista-2026.vercel.app/og.png">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d3fd1'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231d3fd1'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='46' fill='white'%3E%3F%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Provão 2026">
+<meta name="apple-mobile-web-app-title" content="Dá pra passar?">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=a32e40f5">
+<link rel="stylesheet" href="style.css?v=d68ce207">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -42,10 +42,10 @@
 
 <header class="topbar">
   <div class="topbar-inner wrap">
-    <a class="brand" href="#nota" data-goto="nota" aria-label="Simulador Provão Paulista 2026, início">
+    <a class="brand" href="#nota" data-goto="nota" aria-label="Dá pra passar? Simulador do Provão Paulista 2026, início">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Simulador Provão Paulista</span>
-      <span class="brand-year mono">2026</span>
+      <span class="brand-name">Dá pra passar?</span>
+      <span class="brand-year mono">Provão Paulista 2026</span>
     </a>
     <a class="topbar-score" href="#nota" data-goto="nota" aria-label="Ver minha nota">
       <span class="tb-label">Nota projetada</span>
@@ -76,26 +76,20 @@
 <main id="topo">
 <div class="tab-panel" id="painel-nota" data-panel="nota" role="tabpanel" aria-labelledby="tab-nota">
   <section class="intro wrap">
-    <p class="hello" id="hello" hidden></p>
-    <h1>Simule sua nota e veja suas chances</h1>
-    <p class="lede"><b id="heroTotal">1.805</b> cursos da USP, Unesp, Unicamp, Fatec e Univesp · fórmula do edital do Seriado 2026</p>
+    <h1 id="heroTitle">Dá pra passar?</h1>
+    <p class="veredito" id="veredito" aria-live="polite">Descubra sua chance em cada curso.</p>
   </section>
 
   <section class="wrap" aria-labelledby="boletimTitle">
     <div class="sheet boletim">
       <div class="sheet-head">
         <h2 id="boletimTitle">Boletim</h2>
-        <dl class="sheet-id" id="sheetId">
-          <div><dt class="mono">Aluno(a)</dt><dd id="idNome">—</dd></div>
-          <div><dt class="mono">Escola</dt><dd id="idEscola">—</dd></div>
-        </dl>
-        <button class="link-btn" id="btnEditId" type="button">Editar</button>
       </div>
       <div class="boletim-grid">
         <div class="fields">
           <div class="field" data-key="n1">
             <div class="field-head">
-              <label class="field-label" for="n1Range"><span class="field-no mono">01</span>Provão I <small>1ª série</small></label>
+              <label class="field-label" for="n1Range">Provão I <small>1ª série</small></label>
               <span class="field-weight mono">peso 25%</span>
             </div>
             <div class="field-main">
@@ -108,11 +102,10 @@
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n1Contrib">+0,0</b></p>
             </div>
             <input class="range" id="n1Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série)">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span></div>
           </div>
           <div class="field" data-key="n2">
             <div class="field-head">
-              <label class="field-label" for="n2Range"><span class="field-no mono">02</span>Provão II <small>2ª série</small></label>
+              <label class="field-label" for="n2Range">Provão II <small>2ª série</small></label>
               <span class="field-weight mono">peso 25%</span>
             </div>
             <div class="field-main">
@@ -125,11 +118,10 @@
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n2Contrib">+0,0</b></p>
             </div>
             <input class="range" id="n2Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série)">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span></div>
           </div>
           <div class="field" data-key="n3">
             <div class="field-head">
-              <span class="field-label" id="n3Label"><span class="field-no mono">03</span>Provão III + redação <small>3ª série, estimativa</small></span>
+              <span class="field-label" id="n3Label">Provão III + redação <small>3ª série, estimativa</small></span>
               <span class="field-weight mono">peso 50%</span>
             </div>
             <div class="mode-switch" role="group" aria-label="Como informar a 3ª série">
@@ -143,11 +135,10 @@
                 <input class="num-input num" id="n3Num" type="number" inputmode="numeric" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100, número">
                 <button class="step" type="button" data-step="1" aria-label="Aumentar: Estimativa da 3ª série mais redação, de 0 a 100">+</button>
               </div>
-              <p class="field-unit"><span>pontos de 100</span><span class="mono">30% prova + 20% redação</span></p>
+              <p class="field-unit"><span>pontos de 100</span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n3Contrib">+0,0</b></p>
             </div>
             <input class="range" id="n3Range" type="range" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
             </div>
             <div class="modo-area" id="modoArea" hidden>
               <p class="det-intro">Acertos em cada área da prova da 3ª série (90 questões) e nota da redação. O peso de cada área muda conforme a área do curso (edital, Anexo V, Quadro X).</p>
@@ -172,13 +163,7 @@
               <div class="scale-fill" id="sbFill"></div>
               <div class="scale-mark" id="sbTick"><span class="mono" id="sbTickLabel"></span></div>
             </div>
-            <div class="scale-ticks mono" aria-hidden="true"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span></div>
           </div>
-          <dl class="result-facts">
-            <div><dt>Máxima possível</dt><dd class="num" id="notaMax">0,0</dd></div>
-            <div><dt>Já garantido (1ª + 2ª)</dt><dd class="num" id="notaBase">0,0</dd></div>
-          </dl>
-          <p class="result-note">Máxima possível: 100 na 3ª série e na redação.</p>
         </div>
       </div>
     </div>
@@ -187,7 +172,6 @@
   <section class="wrap dist" aria-labelledby="distTitle">
     <div class="dist-head">
       <h2 id="distTitle">Suas chances em <span id="distTotal">1.805</span> cursos</h2>
-      <p class="dist-hint">Toque numa faixa para ver os cursos.</p>
     </div>
     <div class="dist-bar" id="distBar" aria-hidden="true"></div>
     <div class="dist-legend" id="stats" role="group" aria-label="Filtrar por chance"></div>
@@ -232,6 +216,7 @@
       <span>Filtrando por <b id="activeList"></b></span>
       <button class="link-btn" id="btnClearFilters" type="button">Limpar filtros</button>
     </div>
+    <p class="fonte fonte-curta" id="fonteNotas"><!-- fonte --><span class="fonte-dot" aria-hidden="true"></span><span><b>Notas de corte estimadas, não oficiais</b>, atualizadas em outubro de 2026.</span><!-- /fonte --></p>
     <p class="sr-only" id="liveCount" aria-live="polite"></p>
     <div class="sheet table">
       <div class="thead" aria-hidden="true">
@@ -246,16 +231,6 @@
       </div>
     </div>
     <div id="sentinel" class="sentinel" aria-hidden="true"></div>
-  </section>
-
-  <section class="wrap compare" id="compare" hidden aria-labelledby="compareTitle">
-    <div class="section-head">
-      <h2 id="compareTitle">Comparador <span class="count mono" id="pinCount"></span></h2>
-      <button class="link-btn" id="btnClearPins" type="button">Limpar</button>
-    </div>
-    <div class="sheet compare-scroll">
-      <table class="compare-table" id="compareTable"></table>
-    </div>
   </section>
 
   <section class="wrap" aria-labelledby="reverseTitle">
@@ -351,9 +326,32 @@
 
 <footer class="footer">
   <div class="wrap">
-    <p>Simulador independente, sem vínculo com a Seduc-SP ou com as universidades. Notas por curso: estimativas da planilha “Todos os cursos”. · <a href="privacidade">Privacidade e seus dados</a></p>
+    <p><b>Dá pra passar?</b> é um simulador independente, sem vínculo com a Seduc-SP ou com as universidades. Notas por curso: estimativas, não oficiais. · <a href="privacidade">Privacidade e seus dados</a></p>
   </div>
 </footer>
+
+<button class="cmp-bar" id="cmpBar" type="button" hidden aria-haspopup="dialog" aria-controls="compareModal">
+  <span class="cmp-bar-label">Comparar <b class="num" id="cmpBarCount">0</b> <span class="cmp-bar-sub" id="cmpBarSub"></span></span>
+  <span aria-hidden="true">→</span>
+</button>
+
+<div class="modal" id="compareModal" hidden role="dialog" aria-modal="true" aria-labelledby="compareTitle">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-card cmp-card">
+    <div class="section-head">
+      <h2 id="compareTitle">Comparador <span class="count mono" id="pinCount"></span></h2>
+      <div class="cmp-head-actions">
+        <button class="link-btn" id="btnClearPins" type="button">Limpar tudo</button>
+        <button class="btn btn-icon" type="button" data-close aria-label="Fechar" data-icon="x"></button>
+      </div>
+    </div>
+    <div class="compare-scroll">
+      <table class="compare-table" id="compareTable"></table>
+    </div>
+    <div class="cmp-cards" id="compareCards"></div>
+    <p class="modal-hint">Para adicionar outro curso, toque em um curso da lista e depois em “Comparar”.</p>
+  </div>
+</div>
 
 <div class="modal" id="shareModal" hidden role="dialog" aria-modal="true" aria-labelledby="shareTitle">
   <div class="modal-backdrop" data-close></div>
@@ -377,7 +375,7 @@
 <div class="modal" id="welcomeModal" hidden role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
   <div class="modal-backdrop"></div>
   <form class="modal-card welcome" id="welcomeForm" novalidate>
-    <p class="kicker mono">Simulador Provão Paulista 2026</p>
+    <p class="kicker mono">Dá pra passar? · Provão Paulista 2026</p>
     <h2 id="welcomeTitle">Vamos montar o seu boletim</h2>
     <p class="welcome-sub">Diga seu nome e sua escola para personalizar o simulador.</p>
     <label class="input-row" for="pfNome"><span>Seu nome</span>
@@ -403,6 +401,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="app.js?v=a32e40f5" defer></script>
+<script src="bloqueio.js?v=d68ce207" defer></script>
+<script src="app.js?v=d68ce207" defer></script>
 </body>
 </html>
