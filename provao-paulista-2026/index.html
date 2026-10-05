@@ -22,11 +22,15 @@
 <meta name="twitter:description" content="Sua nota final projetada e sua chance em 1.805 cursos públicos de SP.">
 <meta name="twitter:image" content="https://prova-paulista-provao-paulista-2026.vercel.app/og.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d3fd1'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='white'/%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Provão 2026">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=8e0063a8">
+<link rel="stylesheet" href="style.css?v=3f4ea96d">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -50,6 +54,7 @@
     </div>
     <div class="topbar-actions">
       <button class="btn btn-ghost profile-btn" id="btnProfile" type="button" aria-label="Editar nome e escola"><span class="avatar" id="profileAvatar" aria-hidden="true"></span><span class="btn-text" id="profileLabel">Personalizar</span></button>
+      <button class="btn btn-ghost" id="btnInstall" type="button" data-icon="download" hidden><span class="btn-text">Instalar app</span></button>
       <button class="btn btn-ghost" id="btnShare" type="button" data-icon="share"><span class="btn-text">Compartilhar</span></button>
       <button class="btn btn-icon" id="btnTheme" type="button" aria-label="Alternar tema"></button>
     </div>
@@ -311,7 +316,7 @@
 
 <footer class="footer">
   <div class="wrap">
-    <p>Simulador independente, sem vínculo com a Seduc-SP ou com as universidades. Notas por curso: estimativas da planilha “Todos os cursos”. · <a href="privacidade.html">Privacidade e seus dados</a></p>
+    <p>Simulador independente, sem vínculo com a Seduc-SP ou com as universidades. Notas por curso: estimativas da planilha “Todos os cursos”. · <a href="privacidade">Privacidade e seus dados</a></p>
   </div>
 </footer>
 
@@ -326,6 +331,7 @@
     <label class="check" id="shareIdWrap" hidden><input type="checkbox" id="shareId"> Mostrar meu nome e escola na imagem</label>
     <div class="modal-actions">
       <a class="btn btn-primary" id="shareDownload" download="meu-provao-paulista-2026.png" href="#" data-icon="download">Baixar imagem</a>
+      <a class="btn btn-whats" id="shareWhats" href="https://wa.me/" target="_blank" rel="noopener" data-icon="whats">WhatsApp</a>
       <button class="btn" id="shareNative" type="button" data-icon="share">Compartilhar</button>
       <button class="btn" id="shareCopy" type="button" data-icon="copy">Copiar texto</button>
     </div>
@@ -356,12 +362,12 @@
       <button class="btn" type="button" id="pfSkip">Pular</button>
       <button class="link-btn pf-clear" type="button" id="pfClear" hidden>Apagar meus dados</button>
     </div>
-    <p class="modal-hint">Nome e escola ficam só neste aparelho. Só vão para o servidor se você entrar no ranking da escola. <a href="privacidade.html" target="_blank" rel="noopener">Como usamos seus dados</a></p>
+    <p class="modal-hint">Nome e escola ficam só neste aparelho. Só vão para o servidor se você entrar no ranking da escola. <a href="privacidade" target="_blank" rel="noopener">Como usamos seus dados</a></p>
   </form>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="app.js?v=8e0063a8" defer></script>
+<script src="app.js?v=3f4ea96d" defer></script>
 </body>
 </html>

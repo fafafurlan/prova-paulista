@@ -58,6 +58,7 @@ const ICONS = {
   pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
   x: '<path d="M18 6 6 18M6 6l12 12"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5M12 15V3"/>',
+  whats: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M9 10a.5.5 0 0 0 1 0V9a.5.5 0 0 0-1 0v1a5 5 0 0 0 5 5h1a.5.5 0 0 0 0-1h-1a.5.5 0 0 0 0 1"/>',
   copy: '<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
 };
 const icon = (name) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -943,9 +944,10 @@ function renderRanking() {
   const action = rank.on && d.voce
     ? `<div class="rank-action"><p>Você está em <b>${d.voce.pos}º lugar</b> de ${nf0.format(d.total)} ${d.total === 1 ? "aluno" : "alunos"}. Sua nota é atualizada quando você muda os acertos.</p>
        <button class="link-btn" type="button" data-rank="leave">Sair do ranking</button></div>`
-    : `<div class="rank-action join"><p>Você vai aparecer como <b>${esc(rankName(profile.nome))}</b> com sua nota projetada (<b>${fmt1(calc.final)}</b>). Só a lista da sua escola mostra seu nome, e você pode sair quando quiser. <a href="privacidade.html" target="_blank" rel="noopener">Como usamos seus dados</a>.</p>
+    : `<div class="rank-action join"><p>Você vai aparecer como <b>${esc(rankName(profile.nome))}</b> com sua nota projetada (<b>${fmt1(calc.final)}</b>). Só a lista da sua escola mostra seu nome, e você pode sair quando quiser. <a href="privacidade" target="_blank" rel="noopener">Como usamos seus dados</a>.</p>
        <button class="btn btn-primary" type="button" id="rankJoin" data-rank="join">Entrar no ranking da escola</button></div>`;
-  body.innerHTML = `${rows}${meOutside}${action}<p class="rank-note">${nf0.format(d.total)} ${d.total === 1 ? "aluno participa" : "alunos participam"}. As notas são simulações informadas pelos próprios alunos.</p>`;
+  const invite = `<a class="btn btn-whats" href="${whatsappUrl(inviteText(!!(rank.on && d.voce)))}" target="_blank" rel="noopener">${icon("whats")} Convidar colegas pelo WhatsApp</a>`;
+  body.innerHTML = `${rows}${meOutside}${action}${invite}<p class="rank-note">${nf0.format(d.total)} ${d.total === 1 ? "aluno participa" : "alunos participam"}. As notas são simulações informadas pelos próprios alunos.</p>`;
 }
 function setupRanking() {
   $("#rankBody").addEventListener("click", (e) => {
@@ -966,11 +968,19 @@ function topBoaChance(n = 3) {
   idx.sort((a, b) => CURSOS[a].ranking - CURSOS[b].ranking);
   return idx.slice(0, n);
 }
-function shareText() {
+const siteLink = (ref) => `https://${CONFIG.SITE_URL}/?ref=${ref}`;
+const whatsappUrl = (text) => `https://wa.me/?text=${encodeURIComponent(text)}`;
+function shareText(ref = "compartilhar") {
   const counts = { boa: 0, possivel: 0 };
   chanceOf.forEach((k) => { if (k in counts) counts[k]++; });
   return `Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100.\n` +
-    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nSimule a sua: https://${CONFIG.SITE_URL}`;
+    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nSimule a sua: ${siteLink(ref)}`;
+}
+function inviteText(joined) {
+  const escola = profile && profile.escola ? profile.escola : "minha escola";
+  return joined
+    ? `Entrei no ranking da ${escola} no Simulador do Provão Paulista 2026. Simula a sua nota, vê sua chance em 1.805 cursos e entra também: ${siteLink("convite")}`
+    : `Bora montar o ranking da ${escola} no Simulador do Provão Paulista 2026? Simula sua nota, vê sua chance em 1.805 cursos e entra no ranking da escola: ${siteLink("convite")}`;
 }
 function fitText(ctx, text, maxW) {
   if (ctx.measureText(text).width <= maxW) return text;
@@ -1079,6 +1089,7 @@ function setupShare() {
     blob = await new Promise((r) => cv.toBlob(r, "image/png"));
   };
   $("#shareId").addEventListener("change", build);
+  $("#btnShare").addEventListener("click", () => { $("#shareWhats").href = whatsappUrl(shareText("whatsapp")); });
   $("#btnShare").addEventListener("click", async () => {
     if (!CURSOS.length) return;
     lastFocus = document.activeElement;
@@ -1106,12 +1117,35 @@ function setupShare() {
   });
 }
 
+/* ---------- app instalável (PWA) ---------- */
+function setupPWA() {
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => caches.open("pp26-v1"))
+      .then((c) => c.addAll([...document.querySelectorAll('link[rel="stylesheet"][href^="style.css"], script[src^="app.js"]')]
+        .map((el) => el.getAttribute("href") || el.getAttribute("src"))))
+      .catch(() => { /* site funciona sem o service worker */ });
+  }
+  const btn = $("#btnInstall");
+  let prompt = null;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); prompt = e; btn.hidden = false; });
+  window.addEventListener("appinstalled", () => { btn.hidden = true; prompt = null; toast("App instalado! Ele aparece na tela inicial."); });
+  btn.addEventListener("click", async () => {
+    if (!prompt) return;
+    prompt.prompt();
+    try { await prompt.userChoice; } catch (e) { /* ok */ }
+    prompt = null; btn.hidden = true;
+  });
+}
+
 /* ---------- boot ---------- */
 function hydrateIcons() {
   document.querySelectorAll("[data-icon]").forEach((el) => el.insertAdjacentHTML("afterbegin", icon(el.dataset.icon)));
 }
 async function boot() {
   hydrateIcons();
+  setupPWA();
   setupTheme();
   setupInputs();
   setupDetalhe();
