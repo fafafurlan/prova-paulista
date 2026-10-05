@@ -2,6 +2,7 @@
 "use strict";
 
 const CONFIG = {
+  TOTAL_QUESTOES_PROVA: 90,      // questões em cada prova (edital, Anexo IV)
   PESO_SERIE_1: 0.25,
   PESO_SERIE_2: 0.25,
   PESO_SERIE_3_REDACAO: 0.5,     // 30% prova da 3ª série + 20% redação
@@ -11,8 +12,8 @@ const CONFIG = {
   MAX_PINS: 4,
   SITE_URL: "prova-paulista-provao-paulista-2026.vercel.app",
   STORAGE_KEY: "pp26-state",
-  DEFAULTS: { n1: 66.7, n2: 70, n3: 70 }, // notas (0–100) do Provão I e II e estimativa da 3ª + redação
-  STATE_VERSION: 3,              // v1: acertos de 60 questões; v2: acertos de 90; v3: notas de 0 a 100
+  DEFAULTS: { n1: 60, n2: 63, n3: 70 },
+  STATE_VERSION: 2,              // v1 usava 60 questões por prova
   // Provão Paulista Seriado III (Anexo IV): itens por área e pesos por área do curso (Anexo V, Quadro X).
   PROVA3_ITENS: { ling: 24, mat: 18, hum: 24, nat: 24 },
   PESO_OBJETIVA_3: 0.30,
@@ -98,10 +99,9 @@ function turnoGrupo(t) {
 
 /* ---------- state ---------- */
 const saved = store.get(CONFIG.STORAGE_KEY) || {};
-// Versões antigas guardavam acertos do Provão I e II; agora são as notas (como no boletim oficial).
+// Estado salvo antes da correção para 90 questões: converte os acertos mantendo a mesma nota.
 if (saved.v !== CONFIG.STATE_VERSION) {
-  const questoes = saved.v === 2 ? 90 : 60;
-  ["n1", "n2"].forEach((k) => { if (Number.isFinite(saved[k])) saved[k] = Math.round((saved[k] / questoes) * 1000) / 10; });
+  ["n1", "n2"].forEach((k) => { if (Number.isFinite(saved[k])) saved[k] = Math.round((saved[k] * 90) / 60); });
 }
 const savedDet = saved.det && typeof saved.det === "object" ? saved.det : {};
 const state = {
@@ -161,8 +161,9 @@ function own3(area) {
   return (CONFIG.PESO_OBJETIVA_3 * objetiva3(area) + CONFIG.PESO_REDACAO * state.det.red) / CONFIG.PESO_SERIE_3_REDACAO;
 }
 function recompute() {
-  const nota1 = state.n1;
-  const nota2 = state.n2;
+  const T = CONFIG.TOTAL_QUESTOES_PROVA;
+  const nota1 = (state.n1 / T) * 100;
+  const nota2 = (state.n2 / T) * 100;
   const base = CONFIG.PESO_SERIE_1 * nota1 + CONFIG.PESO_SERIE_2 * nota2;
   const own = Object.fromEntries(Object.keys(AREAS).map((a) => [a, own3(a)]));
   const detalhado = state.modo3 === "area";
@@ -191,41 +192,39 @@ function gapText(i) {
 
 /* ---------- inputs ---------- */
 const inputs = [
-  // Provão I e II: a nota do boletim oficial, com uma casa decimal.
-  { key: "n1", range: $("#n1Range"), num: $("#n1Num"), max: () => 100, dec: 1 },
-  { key: "n2", range: $("#n2Range"), num: $("#n2Num"), max: () => 100, dec: 1 },
-  { key: "n3", range: $("#n3Range"), num: $("#n3Num"), max: () => 100, dec: 0 },
+  { key: "n1", range: $("#n1Range"), num: $("#n1Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos" },
+  { key: "n2", range: $("#n2Range"), num: $("#n2Num"), max: () => CONFIG.TOTAL_QUESTOES_PROVA, unit: "acertos" },
+  { key: "n3", range: $("#n3Range"), num: $("#n3Num"), max: () => 100, unit: "pontos" },
 ];
-const fmtInput = (v) => (Number.isInteger(v) ? String(v) : v.toFixed(1).replace(".", ","));
 function paintInput(inp) {
   const max = inp.max(), v = state[inp.key];
   inp.range.style.setProperty("--p", (v / max) * 100 + "%");
-  inp.range.setAttribute("aria-valuetext", `nota ${fmtInput(v)} de ${max}`);
+  inp.range.setAttribute("aria-valuetext", `${nf0.format(v)} ${inp.unit} de ${max}`);
 }
 function setValue(inp, v) {
-  const f = 10 ** inp.dec;
-  state[inp.key] = clamp(Math.round(v * f) / f, 0, inp.max());
+  state[inp.key] = clamp(Math.round(v), 0, inp.max());
   inp.range.value = state[inp.key];
   paintInput(inp);
   scheduleUpdate();
 }
 function setupInputs() {
+  document.querySelectorAll("[data-total]").forEach((el) => (el.textContent = CONFIG.TOTAL_QUESTOES_PROVA));
   inputs.forEach((inp) => {
     const max = inp.max();
     inp.range.max = max; inp.num.max = max;
     state[inp.key] = clamp(state[inp.key], 0, max);
-    inp.range.value = state[inp.key]; inp.num.value = fmtInput(state[inp.key]);
+    inp.range.value = state[inp.key]; inp.num.value = state[inp.key];
     inp.range.closest(".field").querySelectorAll("[data-step]").forEach((btn) => btn.addEventListener("click", () => {
       setValue(inp, state[inp.key] + Number(btn.dataset.step));
-      inp.num.value = fmtInput(state[inp.key]);
+      inp.num.value = state[inp.key];
     }));
     paintInput(inp);
-    inp.range.addEventListener("input", () => { setValue(inp, Number(inp.range.value)); inp.num.value = fmtInput(state[inp.key]); });
+    inp.range.addEventListener("input", () => { setValue(inp, Number(inp.range.value)); inp.num.value = state[inp.key]; });
     inp.num.addEventListener("input", () => {
       const v = parseFloat(String(inp.num.value).replace(",", "."));
       if (Number.isFinite(v)) setValue(inp, v);
     });
-    inp.num.addEventListener("change", () => { inp.num.value = fmtInput(state[inp.key]); });
+    inp.num.addEventListener("change", () => { inp.num.value = state[inp.key]; });
     inp.num.addEventListener("focus", () => inp.num.select());
   });
 }
@@ -1024,7 +1023,7 @@ function renderRanking() {
   const meOutside = d.voce && d.voce.pos > d.top.length
     ? `<p class="rank-me">Sua posição: <b>${d.voce.pos}º de ${nf0.format(d.total)}</b> com ${fmt1(d.voce.nota)}</p>` : "";
   const action = rank.on && d.voce
-    ? `<div class="rank-action"><p>Você está em <b>${d.voce.pos}º lugar</b> de ${nf0.format(d.total)} ${d.total === 1 ? "aluno" : "alunos"}. Sua nota é atualizada quando você muda suas notas.</p>
+    ? `<div class="rank-action"><p>Você está em <b>${d.voce.pos}º lugar</b> de ${nf0.format(d.total)} ${d.total === 1 ? "aluno" : "alunos"}. Sua nota é atualizada quando você muda os acertos.</p>
        <button class="link-btn" type="button" data-rank="leave">Sair do ranking</button></div>`
     : `<div class="rank-action join"><p>Você vai aparecer como <b>${esc(rankName(profile.nome))}</b> com sua nota projetada (<b>${fmt1(calc.final)}</b>). Só a lista da sua escola mostra seu nome, e você pode sair quando quiser. <a href="privacidade" target="_blank" rel="noopener">Como usamos seus dados</a>.</p>
        <button class="btn btn-primary" type="button" id="rankJoin" data-rank="join">Entrar no ranking da escola</button></div>`;

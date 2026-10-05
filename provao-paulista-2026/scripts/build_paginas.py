@@ -142,7 +142,7 @@ def kpis(itens):
 def cta(nome_curso, q):  # q: slug do curso, filtra a lista do simulador
     alvo = f"/?curso={q}#cursos" if q else "/"
     titulo = f"Dá pra passar em {escape(nome_curso)}?" if nome_curso else "Dá pra passar?"
-    return (f'<div class="pg-cta"><p><b>{titulo}</b> Coloque suas notas do Provão I e II e veja quanto precisa tirar na 3ª série.</p>'
+    return (f'<div class="pg-cta"><p><b>{titulo}</b> Coloque seus acertos do Provão I e II e veja quanto precisa tirar na 3ª série.</p>'
             f'<a class="btn btn-primary" href="{alvo}">Simular minha chance →</a></div>')
 
 

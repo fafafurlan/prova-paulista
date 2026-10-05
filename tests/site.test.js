@@ -40,7 +40,7 @@ const setDet = (page, k, v) => page.$eval(`#det-${k}`, (el, v) => { el.value = v
 // Contagem independente, direto de cursos.json, com a regra da planilha (modo nota única).
 function contagemEsperada(n1, n2, n3) {
   const cursos = JSON.parse(fs.readFileSync(path.join(ROOT, "cursos.json"), "utf8"));
-  const base = 0.25 * n1 + 0.25 * n2;
+  const base = 0.25 * (n1 / 90) * 100 + 0.25 * (n2 / 90) * 100;
   const r = { boa: 0, possivel: 0, dificil: 0, muito: 0, fora: 0 };
   for (const c of cursos) {
     const media = Math.max(0, (c.notaEstimada - base) / 0.5), gap = media - n3;
@@ -51,7 +51,7 @@ function contagemEsperada(n1, n2, n3) {
 
 test("carrega os cursos e calcula a nota padrão", async () => {
   const { page, ctx, erros } = await abrir();
-  const esp = contagemEsperada(66.7, 70, 70);
+  const esp = contagemEsperada(60, 63, 70);
   assert.equal(await page.textContent("#countLabel"), `${esp.total.toLocaleString("pt-BR")} de ${esp.total.toLocaleString("pt-BR")}`);
   await esperar(page);
   assert.equal(await page.textContent("#notaFinal"), "69,2");
@@ -64,24 +64,12 @@ test("carrega os cursos e calcula a nota padrão", async () => {
   await ctx.close();
 });
 
-test("converte acertos salvos (60 e 90 questões) para a nota do Provão I e II", async () => {
-  for (const estado of [{ n1: 40, n2: 42, n3: 70 }, { v: 2, n1: 60, n2: 63, n3: 70 }]) {
-    const { page, ctx } = await abrir({ estado });
-    assert.equal(await page.inputValue("#n1Num"), "66,7");
-    assert.equal(await page.inputValue("#n2Num"), "70");
-    await esperar(page);
-    assert.equal(await page.textContent("#notaFinal"), "69,2");
-    await ctx.close();
-  }
-});
-
-test("Provão I e II aceitam nota com vírgula", async () => {
-  const { page, ctx } = await abrir({ estado: { v: 3, n1: 50, n2: 50, n3: 50 } });
-  await page.fill("#n1Num", "72,4");
+test("converte acertos salvos na escala antiga de 60 questões", async () => {
+  const { page, ctx } = await abrir({ estado: { n1: 40, n2: 42, n3: 70 } });
+  assert.equal(await page.inputValue("#n1Num"), "60");
+  assert.equal(await page.inputValue("#n2Num"), "63");
   await esperar(page);
-  assert.equal(await page.textContent("#notaFinal"), "55,6"); // 0,25·72,4 + 0,25·50 + 0,5·50
-  await page.click('.field[data-key="n1"] [data-step="1"]');
-  assert.equal(await page.inputValue("#n1Num"), "73,4");
+  assert.equal(await page.textContent("#notaFinal"), "69,2");
   await ctx.close();
 });
 

@@ -12,7 +12,7 @@
 <meta property="og:locale" content="pt_BR">
 <meta property="og:site_name" content="Dá pra passar?">
 <meta property="og:title" content="Dá pra passar? Sua chance no Provão Paulista 2026">
-<meta property="og:description" content="Coloque suas notas do Provão I e II, estime a 3ª série + redação e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
+<meta property="og:description" content="Coloque seus acertos do Provão I e II, estime a 3ª série + redação e veja sua chance em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.">
 <meta property="og:url" content="https://prova-paulista-provao-paulista-2026.vercel.app/">
 <meta property="og:image" content="https://prova-paulista-provao-paulista-2026.vercel.app/og.png">
 <meta property="og:image:width" content="1200">
@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=b8f0640d">
+<link rel="stylesheet" href="style.css?v=5b17a9aa">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -94,14 +94,14 @@
             </div>
             <div class="field-main">
               <div class="stepper">
-                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Nota no Provão I (1ª série)">−</button>
-                <input class="num-input num dec" id="n1Num" type="text" inputmode="decimal" autocomplete="off" aria-label="Nota no Provão I (1ª série), de 0 a 100">
-                <button class="step" type="button" data-step="1" aria-label="Aumentar: Nota no Provão I (1ª série)">+</button>
+                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Acertos no Provão I (1ª série)">−</button>
+                <input class="num-input num" id="n1Num" type="number" inputmode="numeric" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série), número">
+                <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão I (1ª série)">+</button>
               </div>
-              <p class="field-unit"><span>nota de 0 a 100</span></p>
+              <p class="field-unit"><span>acertos de <span data-total>90</span></span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n1Contrib">+0,0</b></p>
             </div>
-            <input class="range" id="n1Range" type="range" min="0" max="100" step="0.1" aria-label="Nota no Provão I (1ª série)">
+            <input class="range" id="n1Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série)">
           </div>
           <div class="field" data-key="n2">
             <div class="field-head">
@@ -110,14 +110,14 @@
             </div>
             <div class="field-main">
               <div class="stepper">
-                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Nota no Provão II (2ª série)">−</button>
-                <input class="num-input num dec" id="n2Num" type="text" inputmode="decimal" autocomplete="off" aria-label="Nota no Provão II (2ª série), de 0 a 100">
-                <button class="step" type="button" data-step="1" aria-label="Aumentar: Nota no Provão II (2ª série)">+</button>
+                <button class="step" type="button" data-step="-1" aria-label="Diminuir: Acertos no Provão II (2ª série)">−</button>
+                <input class="num-input num" id="n2Num" type="number" inputmode="numeric" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série), número">
+                <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão II (2ª série)">+</button>
               </div>
-              <p class="field-unit"><span>nota de 0 a 100</span></p>
+              <p class="field-unit"><span>acertos de <span data-total>90</span></span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n2Contrib">+0,0</b></p>
             </div>
-            <input class="range" id="n2Range" type="range" min="0" max="100" step="0.1" aria-label="Nota no Provão II (2ª série)">
+            <input class="range" id="n2Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série)">
           </div>
           <div class="field" data-key="n3">
             <div class="field-head">
@@ -237,7 +237,7 @@
     <details class="sheet reverse-d" id="reverseBox">
       <summary><span id="reverseTitle">Quanto preciso tirar na 3ª série?</span><small>Escolha um curso e veja a média mínima</small></summary>
       <div class="reverse">
-        <p class="reverse-help">Com suas notas do Provão I e II, calculamos a média mínima na 3ª série + redação para alcançar a nota estimada do curso.</p>
+        <p class="reverse-help">Com seus acertos do Provão I e II, calculamos a média mínima na 3ª série + redação para alcançar a nota estimada do curso.</p>
         <div class="reverse-box">
           <div class="combo" id="combo">
             <label for="revInput" class="sr-only">Buscar curso</label>
@@ -270,8 +270,8 @@
     <ol class="steps">
       <li>
         <h3>Nota de cada prova</h3>
-        <p>Cada prova do Seriado (1ª, 2ª e 3ª série) vale de 0 a 100. No Provão I e II, use a nota que aparece no seu boletim. Na 3ª série, a nota da prova objetiva é a proporção de acertos nas 90 questões.</p>
-        <code class="mono">P3 = acertos ÷ 90 × 100</code>
+        <p>Cada prova do Seriado (1ª, 2ª e 3ª série) tem <b data-total>90</b> questões. A nota vai de 0 a 100.</p>
+        <code class="mono">nota = acertos ÷ <span data-total>90</span> × 100</code>
       </li>
       <li>
         <h3>Nota final</h3>
@@ -401,7 +401,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="bloqueio.js?v=b8f0640d" defer></script>
-<script src="app.js?v=b8f0640d" defer></script>
+<script src="bloqueio.js?v=5b17a9aa" defer></script>
+<script src="app.js?v=5b17a9aa" defer></script>
 </body>
 </html>
