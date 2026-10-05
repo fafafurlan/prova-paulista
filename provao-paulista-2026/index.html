@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=7788c633">
+<link rel="stylesheet" href="style.css?v=8e0063a8">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 </head>
 <body>
@@ -80,14 +80,14 @@
             <div class="field-main">
               <div class="stepper">
                 <button class="step" type="button" data-step="-1" aria-label="Diminuir: Acertos no Provão I (1ª série)">−</button>
-                <input class="num-input num" id="n1Num" type="number" inputmode="numeric" min="0" max="60" step="1" aria-label="Acertos no Provão I (1ª série), número">
+                <input class="num-input num" id="n1Num" type="number" inputmode="numeric" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série), número">
                 <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão I (1ª série)">+</button>
               </div>
-              <p class="field-unit"><span>acertos de <span data-total>60</span></span><span class="mono">nota <b id="n1Nota">0,0</b></span></p>
+              <p class="field-unit"><span>acertos de <span data-total>90</span></span><span class="mono">nota <b id="n1Nota">0,0</b></span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n1Contrib">+0,0</b></p>
             </div>
-            <input class="range" id="n1Range" type="range" min="0" max="60" step="1" aria-label="Acertos no Provão I (1ª série)">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
+            <input class="range" id="n1Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série)">
+            <div class="ruler mono" aria-hidden="true"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span></div>
           </div>
           <div class="field" data-key="n2">
             <div class="field-head">
@@ -97,20 +97,25 @@
             <div class="field-main">
               <div class="stepper">
                 <button class="step" type="button" data-step="-1" aria-label="Diminuir: Acertos no Provão II (2ª série)">−</button>
-                <input class="num-input num" id="n2Num" type="number" inputmode="numeric" min="0" max="60" step="1" aria-label="Acertos no Provão II (2ª série), número">
+                <input class="num-input num" id="n2Num" type="number" inputmode="numeric" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série), número">
                 <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão II (2ª série)">+</button>
               </div>
-              <p class="field-unit"><span>acertos de <span data-total>60</span></span><span class="mono">nota <b id="n2Nota">0,0</b></span></p>
+              <p class="field-unit"><span>acertos de <span data-total>90</span></span><span class="mono">nota <b id="n2Nota">0,0</b></span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n2Contrib">+0,0</b></p>
             </div>
-            <input class="range" id="n2Range" type="range" min="0" max="60" step="1" aria-label="Acertos no Provão II (2ª série)">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>60</span></div>
+            <input class="range" id="n2Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série)">
+            <div class="ruler mono" aria-hidden="true"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span></div>
           </div>
           <div class="field" data-key="n3">
             <div class="field-head">
-              <label class="field-label" for="n3Range"><span class="field-no mono">03</span>Provão III + redação <small>3ª série, estimativa</small></label>
+              <span class="field-label" id="n3Label"><span class="field-no mono">03</span>Provão III + redação <small>3ª série, estimativa</small></span>
               <span class="field-weight mono">peso 50%</span>
             </div>
+            <div class="mode-switch" role="group" aria-label="Como informar a 3ª série">
+              <button type="button" data-modo="simples" aria-pressed="true">Nota única</button>
+              <button type="button" data-modo="area" aria-pressed="false">Por área (mais preciso)</button>
+            </div>
+            <div class="modo-simples" id="modoSimples">
             <div class="field-main">
               <div class="stepper">
                 <button class="step" type="button" data-step="-1" aria-label="Diminuir: Estimativa da 3ª série mais redação, de 0 a 100">−</button>
@@ -122,11 +127,19 @@
             </div>
             <input class="range" id="n3Range" type="range" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100">
             <div class="ruler mono" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+            </div>
+            <div class="modo-area" id="modoArea" hidden>
+              <p class="det-intro">Acertos em cada área da prova da 3ª série (90 questões) e nota da redação. O peso de cada área muda conforme a área do curso (edital, Anexo V, Quadro X).</p>
+              <div class="det-grid" id="detGrid"></div>
+              <p class="det-total mono" id="detTotal"></p>
+              <p class="det-alert" id="detAlert" hidden></p>
+            </div>
           </div>
         </div>
 
         <div class="result">
           <h3 class="result-label">Nota final projetada</h3>
+          <div class="area-pick" id="areaPick" hidden role="group" aria-label="Área do curso para a nota em destaque"></div>
           <p class="result-big"><span class="num" id="notaFinal">0,0</span><small class="mono">/100</small></p>
           <p class="result-formula mono" id="scoreFormula"></p>
           <div class="scale" role="img" id="scoreBarImg" aria-label="">
@@ -249,17 +262,31 @@
     <ol class="steps">
       <li>
         <h3>Nota de cada prova</h3>
-        <p>As provas da 1ª e da 2ª série têm <b data-total>60</b> questões. A nota vai de 0 a 100.</p>
-        <code class="mono">nota = acertos ÷ <span data-total>60</span> × 100</code>
+        <p>Cada prova do Seriado (1ª, 2ª e 3ª série) tem <b data-total>90</b> questões. A nota vai de 0 a 100.</p>
+        <code class="mono">nota = acertos ÷ <span data-total>90</span> × 100</code>
       </li>
       <li>
         <h3>Nota final</h3>
-        <p>25% da 1ª série, 25% da 2ª, 30% da prova da 3ª e 20% da redação. Aqui, 3ª série e redação entram juntas.</p>
-        <code class="mono">final = 0,25·N1 + 0,25·N2 + 0,5·N3</code>
+        <p>25% da 1ª série, 25% da 2ª, 30% da prova objetiva da 3ª e 20% da redação.</p>
+        <code class="mono">final = 0,25·N1 + 0,25·N2 + 0,3·P3 + 0,2·R</code>
+      </li>
+      <li>
+        <h3>Peso por área do curso</h3>
+        <p>Na 3ª série, cada área da prova pesa diferente conforme a área do curso (Anexo V, Quadro X). No modo “Por área”, P3 é a média ponderada dos seus acertos:</p>
+        <div class="pesos-wrap">
+          <table class="pesos">
+            <thead><tr><th scope="col">Área do curso</th><th scope="col">Ling.</th><th scope="col">Mat.</th><th scope="col">Hum.</th><th scope="col">Nat.</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Humanas e Artes</th><td>2</td><td>1</td><td>2</td><td>1</td></tr>
+              <tr><th scope="row">Exatas e Tecnológicas</th><td>1</td><td>3</td><td>1</td><td>2</td></tr>
+              <tr><th scope="row">Biológicas e Saúde</th><td>2</td><td>1</td><td>1</td><td>3</td></tr>
+            </tbody>
+          </table>
+        </div>
       </li>
       <li>
         <h3>Média necessária</h3>
-        <p>Quanto você precisa na 3ª série + redação para chegar à nota estimada do curso.</p>
+        <p>Quanto você precisa na 3ª série + redação (juntas, de 0 a 100) para chegar à nota estimada do curso.</p>
         <code class="mono">média = (nota do curso − 0,25·N1 − 0,25·N2) ÷ 0,5</code>
       </li>
       <li>
@@ -270,17 +297,17 @@
           <li><i class="c-dot" data-c="possivel"></i><b>Possível</b> até 15</li>
           <li><i class="c-dot" data-c="dificil"></i><b>Difícil</b> até 25</li>
           <li><i class="c-dot" data-c="muito"></i><b>Muito difícil</b> acima de 25</li>
-          <li><i class="c-dot" data-c="fora"></i><b>Fora de alcance</b> média acima de 100</li>
+          <li><i class="c-dot" data-c="fora"></i><b>Fora de alcance</b> média acima de 100 ou eliminação</li>
         </ul>
       </li>
     </ol>
-    <p class="how-note">Na prova da 3ª série, as matérias têm peso diferente conforme a área do curso (Anexo V, Quadro V). USP, Unesp e Unicamp exigem no mínimo 22 acertos na prova da 3ª série (item 13.10); Fatec e Univesp não têm nota mínima. As notas dos cursos são estimativas e não garantem aprovação. Confira sempre o edital oficial.</p>
+    <p class="how-note">Eliminação (modo “Por área”): USP, Unesp e Unicamp exigem no mínimo 22 acertos na prova da 3ª série (item 13.9); Fatec e Univesp não têm esse mínimo. Redação abaixo de 20% elimina em todos os cursos (item 11.2.4). O Quadro X também lista um peso para a redação por área, mas o edital não detalha como ele se combina com os 20% fixos; por isso o simulador mantém a redação em 20%. A área de cada curso foi atribuída pelo nome do curso e as notas dos cursos são estimativas: nada disso garante aprovação. Confira sempre o edital oficial.</p>
   </section>
 </main>
 
 <footer class="footer">
   <div class="wrap">
-    <p>Simulador independente, sem vínculo com a Seduc-SP ou com as universidades. Notas por curso: estimativas da planilha “Todos os cursos”.</p>
+    <p>Simulador independente, sem vínculo com a Seduc-SP ou com as universidades. Notas por curso: estimativas da planilha “Todos os cursos”. · <a href="privacidade.html">Privacidade e seus dados</a></p>
   </div>
 </footer>
 
@@ -325,12 +352,13 @@
       <button class="btn" type="button" id="pfSkip">Pular</button>
       <button class="link-btn pf-clear" type="button" id="pfClear" hidden>Apagar meus dados</button>
     </div>
-    <p class="modal-hint">Seus dados ficam só neste aparelho. Não enviamos nada para nenhum servidor.</p>
+    <p class="modal-hint">Nome e escola ficam só neste aparelho. Só vão para o servidor se você entrar no ranking da escola. <a href="privacidade.html" target="_blank" rel="noopener">Como usamos seus dados</a></p>
   </form>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="app.js?v=7788c633" defer></script>
+<script src="app.js?v=8e0063a8" defer></script>
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>

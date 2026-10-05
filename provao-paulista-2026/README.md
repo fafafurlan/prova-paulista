@@ -7,6 +7,7 @@ Site estático (HTML + CSS + JS puro, sem build) que calcula a nota final projet
 ```
 provao-paulista-2026/
 ├── index.html            # página, meta tags SEO/OG/Twitter, favicon SVG inline
+├── privacidade.html      # política de privacidade (dados do ranking, analytics, como apagar)
 ├── style.css             # tema escuro/claro, glassmorphism, animações
 ├── app.js                # CONFIG, cálculo, filtros, lazy render, comparador, compartilhar
 ├── cursos.json           # 1.805 cursos extraídos da aba "Todos os cursos"
@@ -16,7 +17,8 @@ provao-paulista-2026/
 ├── vercel.json           # headers e cache para Vercel
 ├── netlify.toml          # alternativa para Netlify
 ├── scripts/xlsx_to_json.py    # regenera cursos.json a partir da planilha
-└── scripts/build_escolas.py   # regenera escolas.json a partir do Censo Escolar
+├── scripts/build_escolas.py   # regenera escolas.json a partir do Censo Escolar
+└── scripts/areas.py           # classifica cada curso em Humanas, Exatas ou Biológicas (campo "area")
 ```
 
 ## Fórmula (Anexo V, Quadro II)
@@ -96,11 +98,11 @@ Nome e escola informados pelo aluno ficam só no `localStorage` do navegador (`p
 
 ## Cache e versões dos arquivos
 
-O `index.html` carrega `style.css?v=…` e `app.js?v=…`. Sempre que alterar um desses arquivos, troque o valor de `v` (por exemplo, pelos 8 primeiros caracteres de `cat style.css app.js | sha1sum`). Assim o navegador de quem já visitou o site baixa a versão nova na hora, em vez de misturar HTML novo com CSS/JS antigos.
+O `index.html` carrega `style.css?v=…` e `app.js?v=…` (a `privacidade.html` também carrega o `style.css?v=…`). Sempre que alterar um desses arquivos, troque o valor de `v` (por exemplo, pelos 8 primeiros caracteres de `cat style.css app.js | sha1sum`). Assim o navegador de quem já visitou o site baixa a versão nova na hora, em vez de misturar HTML novo com CSS/JS antigos.
 
 ```bash
 V=$(cat style.css app.js | sha1sum | cut -c1-8)
-sed -i -E "s/(style\.css|app\.js)\?v=[a-z0-9]+/\1?v=$V/g" index.html
+sed -i -E "s/(style\.css|app\.js)\?v=[a-z0-9]+/\1?v=$V/g" index.html privacidade.html
 ```
 
 ## Ranking por escola
@@ -118,3 +120,17 @@ O ranking usa uma função da Vercel (`api/ranking.js`) e um banco Redis gratuit
 - O servidor recalcula a nota a partir dos acertos e só aceita escolas de `escolas.json`.
 - Cada aparelho tem uma chave secreta (`pp26-rank-token` no `localStorage`); só quem tem a chave atualiza ou remove o próprio registro. "Sair do ranking" e "Apagar meus dados" removem o registro do servidor.
 - Limite de 300 envios por hora por IP (uma escola inteira pode sair pelo mesmo IP).
+
+## Nota da 3ª série por área
+
+Pelo edital (Anexo IV), cada prova do Seriado tem 90 questões; na 3ª série: Linguagens 24, Matemática 18, Ciências Humanas 24 e Ciências da Natureza 24, mais a redação. No modo "Por área", a nota da prova objetiva da 3ª série é a média ponderada dos acertos com os pesos do Anexo V, Quadro X, conforme a área do curso. A redação continua com 20%: o Quadro X também lista um peso para a redação, mas o edital não diz como ele se combina com os 20% fixos.
+
+O modo "Por área" também aplica as eliminações do edital: menos de 22 acertos na 3ª série (USP, Unesp e Unicamp, item 13.9) e redação abaixo de 20% (todos os cursos, item 11.2.4).
+
+A área de cada curso está no campo `area` de `cursos.json`, atribuída por palavras-chave no nome do curso. Para corrigir um curso, ajuste as listas em `scripts/areas.py` e rode `python3 scripts/areas.py`. O `scripts/xlsx_to_json.py` já preenche a área ao regerar os dados.
+
+Pesos, número de questões e mínimos ficam no `CONFIG` de `app.js` (e `TOTAL_QUESTOES` em `api/ranking.js`).
+
+## Estatísticas de visita
+
+O site carrega o Vercel Web Analytics (`/_vercel/insights/script.js`), sem cookies. Para começar a coletar, ative em **Vercel → projeto → Analytics → Enable**. Enquanto não estiver ativado, o script não carrega e nada muda para o visitante.
