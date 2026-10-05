@@ -30,7 +30,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
 <link rel="preload" href="cursos.json" as="fetch" crossorigin>
-<link rel="stylesheet" href="style.css?v=bf4feccc">
+<link rel="stylesheet" href="style.css?v=5b17a9aa">
 <script>try{var t=localStorage.getItem("pp26-theme");document.documentElement.setAttribute("data-theme",t||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <script>
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -76,27 +76,20 @@
 <main id="topo">
 <div class="tab-panel" id="painel-nota" data-panel="nota" role="tabpanel" aria-labelledby="tab-nota">
   <section class="intro wrap">
-    <p class="hello" id="hello" hidden></p>
-    <h1>Dá pra passar?</h1>
+    <h1 id="heroTitle">Dá pra passar?</h1>
     <p class="veredito" id="veredito" aria-live="polite">Descubra sua chance em cada curso.</p>
-    <p class="lede"><b id="heroTotal">1.805</b> cursos da USP, Unesp, Unicamp, Fatec e Univesp · fórmula do edital do Seriado 2026</p>
   </section>
 
   <section class="wrap" aria-labelledby="boletimTitle">
     <div class="sheet boletim">
       <div class="sheet-head">
         <h2 id="boletimTitle">Boletim</h2>
-        <dl class="sheet-id" id="sheetId">
-          <div><dt class="mono">Aluno(a)</dt><dd id="idNome">—</dd></div>
-          <div><dt class="mono">Escola</dt><dd id="idEscola">—</dd></div>
-        </dl>
-        <button class="link-btn" id="btnEditId" type="button">Editar</button>
       </div>
       <div class="boletim-grid">
         <div class="fields">
           <div class="field" data-key="n1">
             <div class="field-head">
-              <label class="field-label" for="n1Range"><span class="field-no mono">01</span>Provão I <small>1ª série</small></label>
+              <label class="field-label" for="n1Range">Provão I <small>1ª série</small></label>
               <span class="field-weight mono">peso 25%</span>
             </div>
             <div class="field-main">
@@ -105,15 +98,14 @@
                 <input class="num-input num" id="n1Num" type="number" inputmode="numeric" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série), número">
                 <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão I (1ª série)">+</button>
               </div>
-              <p class="field-unit"><span>acertos de <span data-total>90</span></span><span class="mono">nota <b id="n1Nota">0,0</b></span></p>
+              <p class="field-unit"><span>acertos de <span data-total>90</span></span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n1Contrib">+0,0</b></p>
             </div>
             <input class="range" id="n1Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão I (1ª série)">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span></div>
           </div>
           <div class="field" data-key="n2">
             <div class="field-head">
-              <label class="field-label" for="n2Range"><span class="field-no mono">02</span>Provão II <small>2ª série</small></label>
+              <label class="field-label" for="n2Range">Provão II <small>2ª série</small></label>
               <span class="field-weight mono">peso 25%</span>
             </div>
             <div class="field-main">
@@ -122,15 +114,14 @@
                 <input class="num-input num" id="n2Num" type="number" inputmode="numeric" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série), número">
                 <button class="step" type="button" data-step="1" aria-label="Aumentar: Acertos no Provão II (2ª série)">+</button>
               </div>
-              <p class="field-unit"><span>acertos de <span data-total>90</span></span><span class="mono">nota <b id="n2Nota">0,0</b></span></p>
+              <p class="field-unit"><span>acertos de <span data-total>90</span></span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n2Contrib">+0,0</b></p>
             </div>
             <input class="range" id="n2Range" type="range" min="0" max="90" step="1" aria-label="Acertos no Provão II (2ª série)">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>15</span><span>30</span><span>45</span><span>60</span><span>75</span><span>90</span></div>
           </div>
           <div class="field" data-key="n3">
             <div class="field-head">
-              <span class="field-label" id="n3Label"><span class="field-no mono">03</span>Provão III + redação <small>3ª série, estimativa</small></span>
+              <span class="field-label" id="n3Label">Provão III + redação <small>3ª série, estimativa</small></span>
               <span class="field-weight mono">peso 50%</span>
             </div>
             <div class="mode-switch" role="group" aria-label="Como informar a 3ª série">
@@ -144,11 +135,10 @@
                 <input class="num-input num" id="n3Num" type="number" inputmode="numeric" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100, número">
                 <button class="step" type="button" data-step="1" aria-label="Aumentar: Estimativa da 3ª série mais redação, de 0 a 100">+</button>
               </div>
-              <p class="field-unit"><span>pontos de 100</span><span class="mono">30% prova + 20% redação</span></p>
+              <p class="field-unit"><span>pontos de 100</span></p>
               <p class="field-contrib"><span>na nota final</span><b class="num" id="n3Contrib">+0,0</b></p>
             </div>
             <input class="range" id="n3Range" type="range" min="0" max="100" step="1" aria-label="Estimativa da 3ª série mais redação, de 0 a 100">
-            <div class="ruler mono" aria-hidden="true"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
             </div>
             <div class="modo-area" id="modoArea" hidden>
               <p class="det-intro">Acertos em cada área da prova da 3ª série (90 questões) e nota da redação. O peso de cada área muda conforme a área do curso (edital, Anexo V, Quadro X).</p>
@@ -173,13 +163,7 @@
               <div class="scale-fill" id="sbFill"></div>
               <div class="scale-mark" id="sbTick"><span class="mono" id="sbTickLabel"></span></div>
             </div>
-            <div class="scale-ticks mono" aria-hidden="true"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100</span></div>
           </div>
-          <dl class="result-facts">
-            <div><dt>Máxima possível</dt><dd class="num" id="notaMax">0,0</dd></div>
-            <div><dt>Já garantido (1ª + 2ª)</dt><dd class="num" id="notaBase">0,0</dd></div>
-          </dl>
-          <p class="result-note">Máxima possível: 100 na 3ª série e na redação.</p>
         </div>
       </div>
     </div>
@@ -188,7 +172,6 @@
   <section class="wrap dist" aria-labelledby="distTitle">
     <div class="dist-head">
       <h2 id="distTitle">Suas chances em <span id="distTotal">1.805</span> cursos</h2>
-      <p class="dist-hint">Toque numa faixa para ver os cursos.</p>
     </div>
     <div class="dist-bar" id="distBar" aria-hidden="true"></div>
     <div class="dist-legend" id="stats" role="group" aria-label="Filtrar por chance"></div>
@@ -418,7 +401,7 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
-<script src="bloqueio.js?v=bf4feccc" defer></script>
-<script src="app.js?v=bf4feccc" defer></script>
+<script src="bloqueio.js?v=5b17a9aa" defer></script>
+<script src="app.js?v=5b17a9aa" defer></script>
 </body>
 </html>

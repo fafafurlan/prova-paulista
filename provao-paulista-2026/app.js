@@ -322,13 +322,9 @@ function renderScore() {
   countTo($("#notaFinal"), calc.final, 600);
   countTo($("#tsNota"), calc.final, 400);
   $("#tsMax").textContent = fmt1(calc.max);
-  $("#n1Nota").textContent = fmt1(calc.nota1);
-  $("#n2Nota").textContent = fmt1(calc.nota2);
   $("#n1Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_1 * calc.nota1);
   $("#n2Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_2 * calc.nota2);
   $("#n3Contrib").textContent = "+" + fmt1(CONFIG.PESO_SERIE_3_REDACAO * calc.ownFoco);
-  $("#notaMax").textContent = fmt1(calc.max);
-  $("#notaBase").textContent = fmt1(calc.base);
   $("#scoreFormula").textContent = state.modo3 === "area"
     ? `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,3 × ${fmt1(objetiva3(state.areaFoco))} + 0,2 × ${nf0.format(state.det.red)} · cursos de ${AREAS[state.areaFoco]}`
     : `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
@@ -810,12 +806,7 @@ function initials(nome) {
   return ((w[0] || "")[0] + (w.length > 1 ? w[w.length - 1][0] : "")).toUpperCase();
 }
 function renderProfile() {
-  const hello = $("#hello");
-  hello.hidden = !profile;
-  if (profile) hello.innerHTML = `Olá, <b>${esc(firstName())}</b>!` + (profile.escola ? ` <span class="hello-sep" aria-hidden="true">·</span> ${esc(escolaLabel())}` : "");
-  $("#idNome").textContent = profile ? profile.nome : "—";
-  $("#idEscola").textContent = escolaLabel() || "—";
-  $("#btnEditId").textContent = profile ? "Editar" : "Adicionar nome";
+  $("#heroTitle").textContent = profile ? `${firstName()}, dá pra passar?` : "Dá pra passar?";
   $("#profileAvatar").textContent = profile ? initials(profile.nome) : "+";
   $("#profileLabel").textContent = profile ? `Perfil: ${firstName()}` : "Adicionar nome e escola";
   $("#btnProfile").setAttribute("aria-label", profile ? `Editar nome e escola (${profile.nome})` : "Adicionar nome e escola");
@@ -925,7 +916,6 @@ function setupProfile() {
   modal.addEventListener("keydown", (e) => { if (e.key === "Escape") close(); });
   openProfileDialog = open;
   $("#btnProfile").addEventListener("click", open);
-  $("#btnEditId").addEventListener("click", open);
   renderProfile();
   let seen = false;
   try { seen = !!localStorage.getItem(WELCOME_KEY); } catch (e) { seen = true; }
@@ -1327,7 +1317,6 @@ async function boot() {
   });
   need = new Float32Array(CURSOS.length);
   chanceOf = new Array(CURSOS.length);
-  $("#heroTotal").textContent = nf0.format(CURSOS.length);
   setupReverse();
   update({ reset: true });
 }
