@@ -1089,11 +1089,12 @@ async function drawShareCard(withId = false) {
   ctx.strokeStyle = C.rule; ctx.lineWidth = 2; ctx.strokeRect(48, 48, W - 96, H - 96);
 
   // cabeçalho
-  // marca: quadrado azul com "?"
-  ctx.fillStyle = C.pen; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(X, 108, 40, 40, 10); else ctx.rect(X, 108, 40, 40); ctx.fill();
-  ctx.fillStyle = "#ffffff"; ctx.font = `800 30px ${D}`; ctx.textAlign = "center"; ctx.fillText("?", X + 20, 139); ctx.textAlign = "left";
-  ctx.fillStyle = C.ink; ctx.font = `800 32px ${D}`; ctx.fillText("Dá pra passar?", X + 56, 140);
-  if (!(withId && profile)) { const wb = ctx.measureText("Dá pra passar?").width; ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Provão Paulista 2026", X + 72 + wb, 139); }
+  // marca (icons/logo.svg)
+  const logo = await new Promise((res) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = "icons/logo.svg"; });
+  if (logo) ctx.drawImage(logo, X, 102, 52, 52);
+  else { ctx.fillStyle = C.pen; ctx.beginPath(); ctx.arc(X + 26, 128, 26, 0, Math.PI * 2); ctx.fill(); }
+  ctx.fillStyle = C.ink; ctx.font = `800 32px ${D}`; ctx.fillText("Dá pra passar?", X + 66, 140);
+  if (!(withId && profile)) { const wb = ctx.measureText("Dá pra passar?").width; ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Provão Paulista 2026", X + 82 + wb, 139); }
   ctx.textAlign = "right";
   if (withId && profile) {
     ctx.fillStyle = C.ink; ctx.font = `600 24px ${S}`; ctx.fillText(fitText(ctx, profile.nome, 330), R, profile.escola ? 122 : 137);
