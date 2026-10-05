@@ -1,4 +1,4 @@
-# Simulador Provão Paulista Seriado 2026
+# Dá pra passar? Simulador do Provão Paulista Seriado 2026
 
 Site estático (HTML + CSS + JS puro, sem build) que calcula a nota final projetada no Provão Paulista Seriado 2026 e a chance do aluno em 1.805 cursos da USP, Unesp, Unicamp, Fatec e Univesp.
 

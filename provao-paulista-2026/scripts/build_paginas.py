@@ -94,13 +94,13 @@ def pagina(caminho, titulo, descricao, migalhas, corpo):
 <link rel="canonical" href="{url}">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="pt_BR">
-<meta property="og:site_name" content="Simulador Provão Paulista 2026">
+<meta property="og:site_name" content="Dá pra passar?">
 <meta property="og:title" content="{escape(titulo)}">
 <meta property="og:description" content="{escape(descricao)}">
 <meta property="og:url" content="{url}">
 <meta property="og:image" content="{SITE}/og.png">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d3fd1'/%3E%3Ccircle cx='32' cy='32' r='17' fill='none' stroke='white' stroke-width='5'/%3E%3Ccircle cx='32' cy='32' r='9' fill='white'/%3E%3C/svg%3E">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231d3fd1'/%3E%3Ctext x='32' y='49' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='46' fill='white'%3E%3F%3C/text%3E%3C/svg%3E">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -113,10 +113,10 @@ def pagina(caminho, titulo, descricao, migalhas, corpo):
 <body class="pg-body">
 <header class="topbar">
   <div class="topbar-inner wrap">
-    <a class="brand" href="/" aria-label="Simulador Provão Paulista 2026, início">
+    <a class="brand" href="/" aria-label="Dá pra passar? Simulador do Provão Paulista 2026, início">
       <span class="brand-mark" aria-hidden="true"></span>
-      <span class="brand-name">Simulador Provão Paulista</span>
-      <span class="brand-year mono">2026</span>
+      <span class="brand-name">Dá pra passar?</span>
+      <span class="brand-year mono">Provão Paulista 2026</span>
     </a>
     <a class="btn btn-primary btn-sm pg-top-cta" href="/">Simular minha nota</a>
   </div>
@@ -127,7 +127,7 @@ def pagina(caminho, titulo, descricao, migalhas, corpo):
 </main>
 <footer class="footer">
   <div class="wrap">
-    <p>Simulador independente, sem vínculo com a Seduc-SP ou com as universidades. · <a href="/cursos">Todos os cursos</a> · <a href="/privacidade">Privacidade e seus dados</a></p>
+    <p><b>Dá pra passar?</b> é um simulador independente, sem vínculo com a Seduc-SP ou com as universidades. · <a href="/cursos">Todos os cursos</a> · <a href="/privacidade">Privacidade e seus dados</a></p>
   </div>
 </footer>
 </body>
@@ -141,7 +141,7 @@ def kpis(itens):
 
 def cta(nome_curso, q):  # q: slug do curso, filtra a lista do simulador
     alvo = f"/?curso={q}#cursos" if q else "/"
-    titulo = f"Qual a sua chance em {escape(nome_curso)}?" if nome_curso else "Qual a sua chance?"
+    titulo = f"Dá pra passar em {escape(nome_curso)}?" if nome_curso else "Dá pra passar?"
     return (f'<div class="pg-cta"><p><b>{titulo}</b> Coloque seus acertos do Provão I e II e veja quanto precisa tirar na 3ª série.</p>'
             f'<a class="btn btn-primary" href="{alvo}">Simular minha chance →</a></div>')
 
@@ -199,7 +199,7 @@ for s, cs in sorted(por_curso.items()):
 <tbody>{linhas}</tbody></table></div>
 <p class="fonte">{FONTE_HTML}</p>
 <section class="pg-rel"><h2>Cursos parecidos</h2><div class="pg-links">{rel}</div><p class="pg-uni">Ver todos os cursos: {uni_links}</p></section>"""
-    titulo = f"{nome} no Provão Paulista 2026: nota de corte estimada e vagas"
+    titulo = f"{nome} no Provão Paulista 2026: nota de corte estimada e vagas | Dá pra passar?"
     desc = (f"{nome} pelo Provão Paulista 2026: {milhar(len(cs))} {'opção' if len(cs) == 1 else 'opções'} na {lista_pt(insts)}, "
             f"{milhar(vagas)} vagas e nota de corte estimada de {faixa(notas)}. Simule sua nota e veja sua chance.")
     html = pagina(f"/cursos/{s}", titulo, desc, [("Início", "/"), ("Cursos", "/cursos"), (nome, None)], corpo)
@@ -235,7 +235,7 @@ for sigla, (curto, completo) in INST.items():
 {tabela_cursos(slugs, lambda c: c["instituicao"] == sigla)}
 <p class="fonte">{FONTE_HTML}</p>
 <section class="pg-rel"><h2>Outras universidades</h2>{uni_nav}</section>"""
-    titulo = f"Cursos da {curto} no Provão Paulista 2026: vagas e notas de corte estimadas"
+    titulo = f"Cursos da {curto} no Provão Paulista 2026: vagas e notas de corte estimadas | Dá pra passar?"
     desc = (f"Os {milhar(len(slugs))} cursos da {curto} no Provão Paulista 2026: {milhar(sum(c['vagas'] for c in cs))} vagas "
             f"e nota de corte estimada de cada opção. Simule sua nota e veja sua chance.")
     html = pagina(f"/universidades/{sigla.lower()}", titulo, desc, [("Início", "/"), ("Cursos", "/cursos"), (curto, None)], corpo)
@@ -257,7 +257,7 @@ corpo = f"""<header class="pg-head">
 {cta(None, None)}
 {"".join(secoes)}
 <p class="fonte">{FONTE_HTML}</p>"""
-html = pagina("/cursos", "Todos os cursos do Provão Paulista 2026: USP, Unesp, Unicamp, Fatec e Univesp",
+html = pagina("/cursos", "Todos os cursos do Provão Paulista 2026: USP, Unesp, Unicamp, Fatec e Univesp | Dá pra passar?",
               f"Lista dos {milhar(len(por_curso))} cursos do Provão Paulista 2026, com vagas e nota de corte estimada de cada opção na USP, Unesp, Unicamp, Fatec e Univesp.",
               [("Início", "/"), ("Cursos", None)], corpo)
 (ROOT / "cursos" / "index.html").write_text(html, encoding="utf-8")

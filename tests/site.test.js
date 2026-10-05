@@ -57,6 +57,9 @@ test("carrega os cursos e calcula a nota padrão", async () => {
   assert.equal(await page.textContent("#notaFinal"), "69,2");
   const leg = await legenda(page);
   for (const k of ["boa", "possivel", "dificil", "muito", "fora"]) assert.equal(leg[k], esp[k], k);
+  const ver = await page.textContent("#veredito");
+  if (esp.boa) assert.match(ver, new RegExp(`^Dá! Boa chance em ${esp.boa.toLocaleString("pt-BR")} curso`));
+  assert.match(await page.title(), /^Dá pra passar\?/);
   assert.deepEqual(erros, []);
   await ctx.close();
 });

@@ -1,4 +1,4 @@
-/* Simulador Provão Paulista Seriado 2026 — vanilla JS, sem build. */
+/* Dá pra passar? Simulador do Provão Paulista Seriado 2026 — vanilla JS, sem build. */
 "use strict";
 
 const CONFIG = {
@@ -391,8 +391,22 @@ function setupStats() {
     update({ reset: true });
   });
 }
+// A pergunta do nome do site, respondida com as notas atuais.
+function veredito(counts) {
+  const n = (k) => nf0.format(counts[k]), cursos = (k) => (counts[k] === 1 ? "curso" : "cursos");
+  if (counts.boa) return { tom: "boa", sim: "Dá!", txt: `Boa chance em ${n("boa")} ${cursos("boa")}` + (counts.possivel ? ` e possível em mais ${n("possivel")}.` : ".") };
+  if (counts.possivel) return { tom: "possivel", sim: "Dá, com esforço.", txt: `Chance possível em ${n("possivel")} ${cursos("possivel")}.` };
+  if (counts.dificil) return { tom: "dificil", sim: "Ainda está difícil.", txt: `${n("dificil")} ${cursos("dificil")} ficam ao alcance subindo a nota da 3ª série.` };
+  return { tom: "muito", sim: "Por enquanto, não.", txt: "Aumente a estimativa da 3ª série para ver onde dá." };
+}
 function renderStats(counts, total) {
   $("#distTotal").textContent = nf0.format(total);
+  // Resposta só com a lista completa (sem cursos carregados ou com filtros, a contagem não responde a pergunta).
+  if (CURSOS.length && total === CURSOS.length) {
+    const v = veredito(counts), ve = $("#veredito");
+    ve.dataset.tom = v.tom;
+    ve.innerHTML = `<b>${v.sim}</b> ${esc(v.txt)}`;
+  }
   const bar = $("#distBar");
   bar.classList.toggle("filtered", !!state.chance);
   bar.querySelectorAll(".dist-seg").forEach((s) => {
@@ -1050,14 +1064,14 @@ const whatsappUrl = (text) => `https://wa.me/?text=${encodeURIComponent(text)}`;
 function shareText(ref = "compartilhar") {
   const counts = { boa: 0, possivel: 0 };
   chanceOf.forEach((k) => { if (k in counts) counts[k]++; });
-  return `Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100.\n` +
-    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nSimule a sua: ${siteLink(ref)}`;
+  return `Dá pra passar? Minha nota projetada no Provão Paulista 2026: ${fmt1(calc.final)}/100.\n` +
+    `${nf0.format(counts.boa)} cursos com boa chance e ${nf0.format(counts.possivel)} possíveis.\nDescubra a sua: ${siteLink(ref)}`;
 }
 function inviteText(joined) {
   const escola = profile && profile.escola ? profile.escola : "minha escola";
   return joined
-    ? `Entrei no ranking da ${escola} no Simulador do Provão Paulista 2026. Simula a sua nota, vê sua chance em 1.805 cursos e entra também: ${siteLink("convite")}`
-    : `Bora montar o ranking da ${escola} no Simulador do Provão Paulista 2026? Simula sua nota, vê sua chance em 1.805 cursos e entra no ranking da escola: ${siteLink("convite")}`;
+    ? `Entrei no ranking da ${escola} no Dá pra passar?, o simulador do Provão Paulista 2026. Simula a sua nota, vê sua chance em 1.805 cursos e entra também: ${siteLink("convite")}`
+    : `Bora montar o ranking da ${escola} no Dá pra passar?, o simulador do Provão Paulista 2026? Simula sua nota, vê sua chance em 1.805 cursos e entra no ranking da escola: ${siteLink("convite")}`;
 }
 function fitText(ctx, text, maxW) {
   if (ctx.measureText(text).width <= maxW) return text;
@@ -1083,9 +1097,11 @@ async function drawShareCard(withId = false) {
   ctx.strokeStyle = C.rule; ctx.lineWidth = 2; ctx.strokeRect(48, 48, W - 96, H - 96);
 
   // cabeçalho
-  ctx.strokeStyle = C.pen; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(X + 16, 128, 16, 0, Math.PI * 2); ctx.stroke();
-  ctx.fillStyle = C.pen; ctx.beginPath(); ctx.arc(X + 16, 128, 8, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = C.ink; ctx.font = `700 30px ${D}`; ctx.fillText(withId && profile ? "Provão Paulista 2026" : "Simulador Provão Paulista 2026", X + 50, 139);
+  // marca: quadrado azul com "?"
+  ctx.fillStyle = C.pen; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(X, 108, 40, 40, 10); else ctx.rect(X, 108, 40, 40); ctx.fill();
+  ctx.fillStyle = "#ffffff"; ctx.font = `800 30px ${D}`; ctx.textAlign = "center"; ctx.fillText("?", X + 20, 139); ctx.textAlign = "left";
+  ctx.fillStyle = C.ink; ctx.font = `800 32px ${D}`; ctx.fillText("Dá pra passar?", X + 56, 140);
+  if (!(withId && profile)) { const wb = ctx.measureText("Dá pra passar?").width; ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Provão Paulista 2026", X + 72 + wb, 139); }
   ctx.textAlign = "right";
   if (withId && profile) {
     ctx.fillStyle = C.ink; ctx.font = `600 24px ${S}`; ctx.fillText(fitText(ctx, profile.nome, 330), R, profile.escola ? 122 : 137);
@@ -1150,7 +1166,7 @@ async function drawShareCard(withId = false) {
 
   // rodapé
   line(H - 150);
-  ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Simule a sua nota em", X, H - 108);
+  ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Descubra se dá pra passar em", X, H - 108);
   ctx.fillStyle = C.pen; ctx.font = `600 28px ${M}`; ctx.fillText(fitText(ctx, CONFIG.SITE_URL, CW), X, H - 70);
   return cv;
 }

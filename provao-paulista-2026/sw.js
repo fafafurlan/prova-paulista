@@ -1,4 +1,4 @@
-/* Service worker do Simulador Provão Paulista 2026.
+/* Service worker do Dá pra passar? (simulador do Provão Paulista 2026).
  * Rede primeiro (o site sempre mostra a versão mais nova quando há internet);
  * sem internet, usa a última cópia guardada. O ranking (/api) e as estatísticas
  * (/_vercel) nunca são guardados. */
