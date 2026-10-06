@@ -64,6 +64,7 @@ const ICONS = {
   lista: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
   trofeu: '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6M18 9h1.5a2.5 2.5 0 0 0 0-5H18M4 22h16M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
   info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>',
+  insta: '<rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path d="M17.5 6.5h.01"/>',
   copy: '<rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
 };
 const icon = (name) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -1161,6 +1162,7 @@ async function drawShareCard(withId = false) {
   line(H - 150);
   ctx.fillStyle = C.ink3; ctx.font = `400 22px ${S}`; ctx.fillText("Descubra se dá pra passar em", X, H - 108);
   ctx.fillStyle = C.pen; ctx.font = `600 28px ${M}`; ctx.fillText(fitText(ctx, CONFIG.SITE_URL, CW), X, H - 70);
+  ctx.textAlign = "right"; ctx.fillStyle = C.ink; ctx.font = `600 24px ${M}`; ctx.fillText("Instagram @daprapassar_", R, H - 108); ctx.textAlign = "left";
   return cv;
 }
 function setupShare() {
