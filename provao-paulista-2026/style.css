@@ -136,6 +136,10 @@ h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
 .field-unit { margin: 0; display: flex; flex-direction: column; gap: 2px; font-size: 14px; color: var(--ink-2); min-width: 0; }
 .field-unit .mono { font-size: 12px; color: var(--ink-3); }
 .field-unit b { color: var(--ink); font-weight: 600; }
+.origem3 { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; font-size: 12px; color: var(--ink-3); }
+.origem3[data-origem="estimado"] #n3OrigemTxt::before { content: "≈ "; }
+.origem3-btn { padding: 0; font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
+.field-aviso { margin: 6px 0 0; font-size: 12px; color: var(--c-dificil); }
 .field-contrib { margin: 0 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
 .field-contrib span { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
 .field-contrib b { font-size: 28px; line-height: 1; color: var(--pen); }
