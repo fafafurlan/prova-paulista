@@ -51,16 +51,99 @@ function contagemEsperada(n1, n2, n3) {
 
 test("carrega os cursos e calcula a nota padrão", async () => {
   const { page, ctx, erros } = await abrir();
-  const esp = contagemEsperada(60, 63, 70);
+  // Visitante novo: 3ª série estimada pelo 1º e 2º ano (66,7 e 70,0 → 73,3, no campo 73).
+  const esp = contagemEsperada(60, 63, 73);
   assert.equal(await page.textContent("#countLabel"), `${esp.total.toLocaleString("pt-BR")} de ${esp.total.toLocaleString("pt-BR")}`);
   await esperar(page);
-  assert.equal(await page.textContent("#notaFinal"), "69,2");
+  assert.equal(await page.textContent("#notaFinal"), "70,7");
   const leg = await legenda(page);
   for (const k of ["boa", "possivel", "dificil", "muito", "fora"]) assert.equal(leg[k], esp[k], k);
   const ver = await page.textContent("#veredito");
   if (esp.boa) assert.match(ver, new RegExp(`^Dá! Boa chance em ${esp.boa.toLocaleString("pt-BR")} curso`));
   assert.match(await page.title(), /^Dá pra passar\?/);
   assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("estimarNota3: tendência linear com limite de 0 a 100", async () => {
+  const { page, ctx } = await abrir();
+  const r = await page.evaluate(() => [
+    estimarNota3(50, 70), estimarNota3(30, 90), estimarNota3(80, 20), estimarNota3(200 / 3, 70),
+    estimarNota3(NaN, 50), estimarNota3(50, undefined), estimarNota3(120, 50), estimarNota3(-1, 50),
+  ]);
+  assert.deepEqual(r, [90, 100, 0, 73.3, null, null, null, null]);
+  await ctx.close();
+});
+
+test("3ª série estimada x manual", async () => {
+  const { page, ctx, erros } = await abrir();
+  const origem = () => page.$eval("#n3Origem", (el) => ({ o: el.dataset.origem, txt: el.textContent, botao: !el.querySelector("#n3UsarEst").hidden }));
+  const sair = (sel) => page.$eval(sel, (el) => el.dispatchEvent(new Event("change", { bubbles: true })));
+  await esperar(page);
+  assert.equal(await page.inputValue("#n3Num"), "73");
+  let o = await origem();
+  assert.equal(o.o, "estimado"); assert.match(o.txt, /estimada pelo 1º e 2º ano/); assert.equal(o.botao, false);
+
+  // Sem edição manual: recalcula quando o 2º ano muda (66,7 e 77,8 → 88,9).
+  await page.fill("#n2Num", "70");
+  await esperar(page);
+  assert.equal(await page.inputValue("#n3Num"), "89");
+
+  // Edição manual: o valor fica, mesmo mudando o 1º ano depois.
+  await page.fill("#n3Num", "50");
+  await page.fill("#n1Num", "30");
+  await esperar(page);
+  assert.equal(await page.inputValue("#n3Num"), "50");
+  o = await origem();
+  assert.equal(o.o, "manual"); assert.equal(o.botao, true);
+  assert.match(o.txt, /Usar nota estimada \(100\)/); // 33,3 e 77,8 → 122 → limite 100
+
+  // Botão volta para a estimativa.
+  await page.click("#n3UsarEst");
+  await esperar(page);
+  assert.equal(await page.inputValue("#n3Num"), "100");
+  assert.equal((await origem()).o, "estimado");
+
+  // Apagar o valor manual também volta para a estimativa.
+  await page.fill("#n3Num", "40");
+  await page.fill("#n3Num", "");
+  await sair("#n3Num");
+  await esperar(page);
+  assert.equal(await page.inputValue("#n3Num"), "100");
+  assert.equal((await origem()).o, "estimado");
+
+  // 1º ano apagado: não estima; 3ª série fica com o último valor e a origem neutra.
+  await page.fill("#n1Num", "");
+  await esperar(page);
+  o = await origem();
+  assert.equal(o.o, "neutro"); assert.match(o.txt, /preencha o 1º e o 2º ano/);
+  assert.equal(await page.inputValue("#n3Num"), "100");
+  await sair("#n1Num");
+
+  // Fora da faixa: avisa e limita a 90.
+  await page.fill("#n2Num", "120");
+  assert.equal(await page.isVisible("#n2Aviso"), true);
+  assert.match(await page.textContent("#n2Aviso"), /0 a 90 acertos/);
+  await sair("#n2Num");
+  assert.equal(await page.inputValue("#n2Num"), "90");
+  assert.equal(await page.isVisible("#n2Aviso"), false);
+  assert.deepEqual(erros, []);
+  await ctx.close();
+});
+
+test("3ª série salva antes da estimativa continua manual", async () => {
+  const { page, ctx } = await abrir({ estado: { v: 2, n1: 60, n2: 63, n3: 70 } });
+  await esperar(page);
+  assert.equal(await page.inputValue("#n3Num"), "70");
+  assert.equal(await page.$eval("#n3Origem", (el) => el.dataset.origem), "manual");
+  assert.equal(await page.textContent("#notaFinal"), "69,2");
+  // E o modo escolhido fica salvo entre visitas.
+  await page.click("#n3UsarEst");
+  await esperar(page);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.waitForFunction(() => document.querySelectorAll("#grid .row").length > 0);
+  assert.equal(await page.$eval("#n3Origem", (el) => el.dataset.origem), "estimado");
+  assert.equal(await page.inputValue("#n3Num"), "73");
   await ctx.close();
 });
 

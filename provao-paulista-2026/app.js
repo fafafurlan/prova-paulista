@@ -112,6 +112,9 @@ const state = {
   n1: Number.isFinite(saved.n1) ? saved.n1 : CONFIG.DEFAULTS.n1,
   n2: Number.isFinite(saved.n2) ? saved.n2 : CONFIG.DEFAULTS.n2,
   n3: Number.isFinite(saved.n3) ? saved.n3 : CONFIG.DEFAULTS.n3,
+  // 3ª série digitada pelo usuário (true) ou estimada pelo 1º e 2º ano (false).
+  // Quem já tinha um valor salvo antes da estimativa continua com o valor dele.
+  n3Manual: typeof saved.n3Manual === "boolean" ? saved.n3Manual : Number.isFinite(saved.n3),
   // Filtros não são salvos: cada visita começa com todos os cursos.
   inst: "",
   chance: "",
@@ -123,8 +126,8 @@ const state = {
   revId: Number.isInteger(saved.revId) ? saved.revId : null,
 };
 const persist = debounce(() => {
-  const { n1, n2, n3, pins, revId, modo3, det, areaFoco } = state;
-  store.set(CONFIG.STORAGE_KEY, { v: CONFIG.STATE_VERSION, n1, n2, n3, pins, revId, modo3, det, areaFoco });
+  const { n1, n2, n3, n3Manual, pins, revId, modo3, det, areaFoco } = state;
+  store.set(CONFIG.STORAGE_KEY, { v: CONFIG.STATE_VERSION, n1, n2, n3, n3Manual, pins, revId, modo3, det, areaFoco });
 }, 300);
 
 let CURSOS = [];
@@ -206,28 +209,102 @@ function setValue(inp, v) {
   state[inp.key] = clamp(Math.round(v), 0, inp.max());
   inp.range.value = state[inp.key];
   paintInput(inp);
+  if (inp.key !== "n3") aplicarEstimativa3();
   scheduleUpdate();
 }
+
+/* ---------- estimativa da 3ª série ---------- */
+// Regra isolada para poder ser trocada: tendência linear a partir das notas (0–100)
+// do 1º e 2º ano. Devolve null se alguma nota for inválida.
+function estimarNota3(nota1, nota2) {
+  const ok = (n) => Number.isFinite(n) && n >= 0 && n <= 100;
+  if (!ok(nota1) || !ok(nota2)) return null;
+  return Math.round(clamp(nota2 + (nota2 - nota1), 0, 100) * 10) / 10;
+}
+// false enquanto o campo digitado do 1º ou 2º ano está vazio ou inválido.
+const entradaOk = { n1: true, n2: true };
+function estimativa3() {
+  if (!entradaOk.n1 || !entradaOk.n2) return null;
+  const T = CONFIG.TOTAL_QUESTOES_PROVA;
+  return estimarNota3((state.n1 / T) * 100, (state.n2 / T) * 100);
+}
+// O campo da 3ª série aceita só inteiros: a estimativa entra arredondada.
+function aplicarEstimativa3() {
+  if (state.n3Manual) return;
+  const e = estimativa3();
+  if (e === null) return;
+  const inp = inputs[2];
+  state.n3 = clamp(Math.round(e), 0, 100);
+  inp.range.value = state.n3;
+  inp.num.value = state.n3;
+  paintInput(inp);
+}
+function usarEstimativa3() {
+  state.n3Manual = false;
+  aplicarEstimativa3();
+  inputs[2].num.value = state.n3;
+  scheduleUpdate();
+}
+function renderOrigem3() {
+  const e = estimativa3();
+  const el = $("#n3Origem");
+  el.dataset.origem = e === null ? "neutro" : state.n3Manual ? "manual" : "estimado";
+  $("#n3OrigemTxt").textContent = e === null ? "preencha o 1º e o 2º ano para estimar"
+    : state.n3Manual ? "valor manual" : "estimada pelo 1º e 2º ano";
+  $("#n3UsarEst").hidden = !state.n3Manual || e === null;
+  $("#n3UsarEst").textContent = e === null ? "" : `Usar nota estimada (${nf0.format(Math.round(e))})`;
+}
+function avisoFaixa(inp, v) {
+  const el = $(`#${inp.key}Aviso`);
+  if (!el) return;
+  const max = inp.max();
+  const fora = Number.isFinite(v) && (v < 0 || v > max);
+  el.hidden = !fora;
+  el.textContent = fora ? `Use um valor de 0 a ${max} acertos.` : "";
+}
+
 function setupInputs() {
   document.querySelectorAll("[data-total]").forEach((el) => (el.textContent = CONFIG.TOTAL_QUESTOES_PROVA));
   inputs.forEach((inp) => {
     const max = inp.max();
+    const e3 = inp.key === "n3";
+    // Mexer no campo da 3ª série passa a usar o valor do usuário.
+    const marcarManual = () => { if (e3) state.n3Manual = true; };
     inp.range.max = max; inp.num.max = max;
     state[inp.key] = clamp(state[inp.key], 0, max);
     inp.range.value = state[inp.key]; inp.num.value = state[inp.key];
     inp.range.closest(".field").querySelectorAll("[data-step]").forEach((btn) => btn.addEventListener("click", () => {
+      marcarManual();
+      if (!e3) { entradaOk[inp.key] = true; avisoFaixa(inp, NaN); }
       setValue(inp, state[inp.key] + Number(btn.dataset.step));
       inp.num.value = state[inp.key];
     }));
     paintInput(inp);
-    inp.range.addEventListener("input", () => { setValue(inp, Number(inp.range.value)); inp.num.value = state[inp.key]; });
+    inp.range.addEventListener("input", () => {
+      marcarManual();
+      if (!e3) { entradaOk[inp.key] = true; avisoFaixa(inp, NaN); }
+      setValue(inp, Number(inp.range.value));
+      inp.num.value = state[inp.key];
+    });
     inp.num.addEventListener("input", () => {
       const v = parseFloat(String(inp.num.value).replace(",", "."));
-      if (Number.isFinite(v)) setValue(inp, v);
+      if (!e3) {
+        entradaOk[inp.key] = Number.isFinite(v);
+        avisoFaixa(inp, v);
+        if (!entradaOk[inp.key]) scheduleUpdate();
+      }
+      if (Number.isFinite(v)) { marcarManual(); setValue(inp, v); }
     });
-    inp.num.addEventListener("change", () => { inp.num.value = state[inp.key]; });
+    inp.num.addEventListener("change", () => {
+      // 3ª série apagada: volta para a estimativa.
+      if (e3 && String(inp.num.value).trim() === "") { usarEstimativa3(); return; }
+      if (!e3) { entradaOk[inp.key] = true; avisoFaixa(inp, NaN); aplicarEstimativa3(); scheduleUpdate(); }
+      inp.num.value = state[inp.key];
+    });
     inp.num.addEventListener("focus", () => inp.num.select());
   });
+  $("#n3UsarEst").addEventListener("click", usarEstimativa3);
+  aplicarEstimativa3();
 }
 
 /* ---------- 3ª série por área ---------- */
@@ -332,6 +409,7 @@ function renderScore() {
     ? `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,3 × ${fmt1(objetiva3(state.areaFoco))} + 0,2 × ${nf0.format(state.det.red)} · cursos de ${AREAS[state.areaFoco]}`
     : `0,25 × ${fmt1(calc.nota1)} + 0,25 × ${fmt1(calc.nota2)} + 0,5 × ${nf0.format(state.n3)}`;
   renderDetalhe();
+  renderOrigem3();
   $("#sbFill").style.width = calc.final + "%";
   $("#sbMax").style.width = calc.max + "%";
   $("#sbTick").style.left = `calc(${calc.max}% - 1px)`;
