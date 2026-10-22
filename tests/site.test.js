@@ -44,7 +44,7 @@ function contagemEsperada(n1, n2, n3) {
   const r = { boa: 0, possivel: 0, dificil: 0, muito: 0, fora: 0 };
   for (const c of cursos) {
     const media = Math.max(0, (c.notaEstimada - base) / 0.5), gap = media - n3;
-    r[media > 100 ? "fora" : gap <= 5 ? "boa" : gap <= 15 ? "possivel" : gap <= 25 ? "dificil" : "muito"]++;
+    r[media > 100 ? "fora" : gap <= 0 ? "boa" : gap <= 15 ? "possivel" : gap <= 25 ? "dificil" : "muito"]++;
   }
   return { total: cursos.length, ...r };
 }

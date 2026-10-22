@@ -6,7 +6,7 @@ const CONFIG = {
   PESO_SERIE_1: 0.25,
   PESO_SERIE_2: 0.25,
   PESO_SERIE_3_REDACAO: 0.5,     // 30% prova da 3ª série + 20% redação
-  LIMITES_CHANCE: { boa: 5, possivel: 15, dificil: 25 }, // pontos que faltam na média
+  LIMITES_CHANCE: { boa: 0, possivel: 15, dificil: 25 }, // pontos que faltam na média (boa = já alcança)
   DATA_URL: "cursos.json",
   PAGE_SIZE: 60,                 // linhas renderizadas por lote (lazy render)
   MAX_PINS: 4,
